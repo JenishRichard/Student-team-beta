@@ -122,10 +122,9 @@ GitHub webhook triggers Jenkins pipeline:
 5. Package artifacts (JAR)
 6. Store artifacts in Nexus (planned)
 7. Build Docker images
-8. Deploy to **DEV** (auto)
-9. Deploy to **STAGING** (auto)
-10. Deploy to **PROD** (manual approval)
-11. Notifications (Slack) + Monitoring (Grafana)
+8. Deploy to **Development** (auto)
+9. Deploy to **main** (Manual)
+10. Notifications (Slack) + Monitoring (Grafana)
 
 ---
 
