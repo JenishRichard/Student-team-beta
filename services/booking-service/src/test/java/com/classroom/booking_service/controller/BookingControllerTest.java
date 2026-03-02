@@ -4,15 +4,19 @@ import com.classroom.booking_service.entity.Booking;
 import com.classroom.booking_service.entity.BookingStatus;
 import com.classroom.booking_service.service.BookingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
 import java.time.LocalDate;
 import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -31,7 +35,6 @@ class BookingControllerTest {
 
     @Test
     void getAllBookings_shouldReturn200() throws Exception {
-
         Booking booking = new Booking();
         booking.setRoomId(1L);
         booking.setBookedBy("Jenish");
@@ -48,7 +51,6 @@ class BookingControllerTest {
 
     @Test
     void createBooking_shouldReturn200() throws Exception {
-
         Booking booking = new Booking();
         booking.setRoomId(1L);
         booking.setBookedBy("Jenish");
@@ -67,7 +69,6 @@ class BookingControllerTest {
 
     @Test
     void cancelBooking_shouldReturn200() throws Exception {
-
         Booking booking = new Booking();
         booking.setStatus(BookingStatus.CANCELLED);
 
