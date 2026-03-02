@@ -9,12 +9,23 @@ spring:
     config:
       enabled: false
     gateway:
-      routes:
-        - id: room-service
-          uri: http://localhost:8081
-          predicates:
-            - Path=/rooms/**
-        - id: booking-service
-          uri: http://localhost:8082
-          predicates:
-            - Path=/bookings/**
+      server:
+        webmvc:
+          routes:
+            - id: room-service
+              uri: http://localhost:8081
+              predicates:
+                - Path=/rooms, /rooms/**
+
+            - id: booking-service
+              uri: http://localhost:8083
+              predicates:
+                - Path=/bookings, /bookings/**
+
+            - id: auth-service
+              uri: http://localhost:8084
+              predicates:
+                - Path=/auth, /auth/**
+
+jwt:
+  secret: "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS_123456"
