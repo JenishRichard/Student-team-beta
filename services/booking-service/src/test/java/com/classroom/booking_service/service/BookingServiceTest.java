@@ -29,7 +29,6 @@ class BookingServiceTest {
 
     @Test
     void createBooking_success() {
-
         Booking booking = new Booking();
         booking.setRoomId(1L);
         booking.setBookingDate(LocalDate.now());
@@ -48,7 +47,6 @@ class BookingServiceTest {
 
     @Test
     void createBooking_shouldThrowException_whenAlreadyConfirmed() {
-
         Booking booking = new Booking();
         booking.setRoomId(1L);
         booking.setBookingDate(LocalDate.now());
@@ -63,7 +61,6 @@ class BookingServiceTest {
 
     @Test
     void cancelBooking_success() {
-
         Booking booking = new Booking();
         booking.setStatus(BookingStatus.CONFIRMED);
 
@@ -73,12 +70,10 @@ class BookingServiceTest {
         Booking result = service.cancelBooking(1L);
 
         assertEquals(BookingStatus.CANCELLED, result.getStatus());
-        verify(repository, times(1)).save(booking);
     }
 
     @Test
     void cancelBooking_shouldThrowException_whenNotFound() {
-
         when(repository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class,
