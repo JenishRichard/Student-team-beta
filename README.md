@@ -141,6 +141,33 @@ GitHub Repository: https://github.com/JenishRichard/Student-team-beta.git
 
 ---
 
+## Database Setup for Team Collaboration
+
+To avoid "works on my machine" DB issues, `room-service` and `booking-service` now use:
+
+- Environment-based DB config (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`)
+- Flyway SQL migrations (`src/main/resources/db/migration`)
+
+### Shared DB values (current)
+
+- `DB_HOST=127.0.0.1`
+- `DB_PORT=3307`
+- `DB_NAME=student_db`
+- `DB_USER=root`
+- `DB_PASSWORD=root`
+
+### How to run
+
+1. Start MySQL:
+   `docker compose up -d mysql`
+2. Export variables (or configure in IDE run config):
+   `export DB_HOST=127.0.0.1 DB_PORT=3307 DB_NAME=student_db DB_USER=root DB_PASSWORD=root`
+3. Start services.
+
+Flyway will auto-apply missing migrations on startup, so schema changes committed by one teammate are applied for others after pull.
+
+---
+
 ## Team
 	•	Jenish Richard – A00336114
 	•	Sanket Shetty – A00336144
