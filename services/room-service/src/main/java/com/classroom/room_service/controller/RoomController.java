@@ -1,8 +1,7 @@
 package com.classroom.room_service.controller;
 
 import com.classroom.room_service.entity.Room;
-import com.classroom.room_service.repository.RoomRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.classroom.room_service.service.RoomService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,16 +10,19 @@ import java.util.List;
 @RequestMapping("/rooms")
 public class RoomController {
 
-    @Autowired
-    private RoomRepository repository;
+    private final RoomService roomService;
 
-    @PostMapping
-    public Room create(@RequestBody Room room) {
-        return repository.save(room);
+    public RoomController(RoomService roomService) {
+        this.roomService = roomService;
     }
 
     @GetMapping
-    public List<Room> getAll() {
-        return repository.findAll();
+    public List<Room> getAllRooms() {
+        return roomService.getAllRooms();
+    }
+
+    @PostMapping
+    public Room createRoom(@RequestBody Room room) {
+        return roomService.createRoom(room);
     }
 }
