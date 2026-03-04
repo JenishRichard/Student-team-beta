@@ -26,8 +26,6 @@ class BookingControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @MockBean
     private BookingService service;
 
     @Autowired
