@@ -1,5 +1,6 @@
 pipeline {
 agent any
+
 tools {
     maven 'Maven3'
     jdk 'JDK17'
@@ -10,18 +11,18 @@ stages {
     stage('Checkout Source Code') {
         steps {
             echo 'Cloning repository from GitHub'
-            git branch: 'main', url: 'https://github.com/SanketJr11/Student-team-beta.git'
+            git branch: 'development', url: 'https://github.com/SanketJr11/Student-team-beta.git'
         }
     }
 
     stage('Build Project') {
         steps {
-            echo 'Compiling project using Maven'
+            echo 'Building Maven Project'
             bat 'mvn clean compile'
         }
     }
 
-    stage('Run Unit Tests') {
+    stage('Run Tests') {
         steps {
             echo 'Running unit tests'
             bat 'mvn test'
@@ -37,7 +38,6 @@ stages {
 
     stage('Archive Artifacts') {
         steps {
-            echo 'Saving build artifacts'
             archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
         }
     }
@@ -46,11 +46,11 @@ stages {
 
 post {
     success {
-        echo 'CI Pipeline completed successfully!'
+        echo 'Build completed successfully'
     }
 
     failure {
-        echo 'Build failed. Please check errors.'
+        echo 'Build failed'
     }
 
     always {
