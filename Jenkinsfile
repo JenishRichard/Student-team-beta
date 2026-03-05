@@ -56,6 +56,13 @@ post {
     always {
         junit '**/target/surefire-reports/*.xml'
     }
-}
 
+    success {
+        echo 'Pipeline completed successfully'
+    }
+
+    failure {
+        echo 'Pipeline failed'
+    }
+}
 }
