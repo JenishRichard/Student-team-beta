@@ -1,0 +1,6 @@
+server:
+  port: 8084
+
+jwt:
+  secret: "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS_123456"
+  accessTokenMinutes: 60

@@ -1,0 +1,15 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: classroom-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+
+volumes:
+  mysql_data:

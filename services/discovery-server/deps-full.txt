@@ -1,0 +1,143 @@
+com.example:eureka-server:jar:0.0.1-SNAPSHOT
++- org.springframework.boot:spring-boot-starter:jar:3.2.5:compile
+|  +- org.springframework.boot:spring-boot:jar:3.2.5:compile
+|  |  \- org.springframework:spring-context:jar:6.1.6:compile
+|  |     +- org.springframework:spring-aop:jar:6.1.6:compile
+|  |     +- org.springframework:spring-beans:jar:6.1.6:compile
+|  |     +- org.springframework:spring-expression:jar:6.1.6:compile
+|  |     \- io.micrometer:micrometer-observation:jar:1.12.5:compile
+|  |        \- io.micrometer:micrometer-commons:jar:1.12.5:compile
+|  +- org.springframework.boot:spring-boot-autoconfigure:jar:3.2.5:compile
+|  +- org.springframework.boot:spring-boot-starter-logging:jar:3.2.5:compile
+|  |  +- ch.qos.logback:logback-classic:jar:1.4.14:compile
+|  |  |  \- ch.qos.logback:logback-core:jar:1.4.14:compile
+|  |  +- org.apache.logging.log4j:log4j-to-slf4j:jar:2.21.1:compile
+|  |  |  \- org.apache.logging.log4j:log4j-api:jar:2.21.1:compile
+|  |  \- org.slf4j:jul-to-slf4j:jar:2.0.13:compile
+|  +- jakarta.annotation:jakarta.annotation-api:jar:2.1.1:compile
+|  +- org.springframework:spring-core:jar:6.1.6:compile
+|  |  \- org.springframework:spring-jcl:jar:6.1.6:compile
+|  \- org.yaml:snakeyaml:jar:2.2:compile
++- org.springframework.cloud:spring-cloud-starter-netflix-eureka-server:jar:4.1.1:compile
+|  +- org.springframework.cloud:spring-cloud-starter:jar:4.1.2:compile
+|  |  +- org.springframework.cloud:spring-cloud-context:jar:4.1.2:compile
+|  |  |  \- org.springframework.security:spring-security-crypto:jar:6.2.4:compile
+|  |  +- org.springframework.cloud:spring-cloud-commons:jar:4.1.2:compile
+|  |  \- org.springframework.security:spring-security-rsa:jar:1.1.2:compile
+|  |     \- org.bouncycastle:bcprov-jdk18on:jar:1.77:compile
+|  +- org.springframework.cloud:spring-cloud-netflix-eureka-server:jar:4.1.1:compile
+|  |  +- org.springframework.boot:spring-boot-starter-web:jar:3.2.5:compile
+|  |  |  +- org.springframework.boot:spring-boot-starter-json:jar:3.2.5:compile
+|  |  |  |  +- com.fasterxml.jackson.datatype:jackson-datatype-jdk8:jar:2.15.4:compile
+|  |  |  |  +- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:jar:2.15.4:compile
+|  |  |  |  \- com.fasterxml.jackson.module:jackson-module-parameter-names:jar:2.15.4:compile
+|  |  |  +- org.springframework.boot:spring-boot-starter-tomcat:jar:3.2.5:compile
+|  |  |  |  +- org.apache.tomcat.embed:tomcat-embed-core:jar:10.1.20:compile
+|  |  |  |  +- org.apache.tomcat.embed:tomcat-embed-el:jar:10.1.20:compile
+|  |  |  |  \- org.apache.tomcat.embed:tomcat-embed-websocket:jar:10.1.20:compile
+|  |  |  +- org.springframework:spring-web:jar:6.1.6:compile
+|  |  |  \- org.springframework:spring-webmvc:jar:6.1.6:compile
+|  |  +- org.springframework.boot:spring-boot-starter-actuator:jar:3.2.5:compile
+|  |  |  +- org.springframework.boot:spring-boot-actuator-autoconfigure:jar:3.2.5:compile
+|  |  |  |  \- org.springframework.boot:spring-boot-actuator:jar:3.2.5:compile
+|  |  |  \- io.micrometer:micrometer-jakarta9:jar:1.12.5:compile
+|  |  |     \- io.micrometer:micrometer-core:jar:1.12.5:compile
+|  |  |        +- org.hdrhistogram:HdrHistogram:jar:2.1.12:runtime
+|  |  |        \- org.latencyutils:LatencyUtils:jar:2.0.3:runtime
+|  |  +- org.springframework.boot:spring-boot-starter-freemarker:jar:3.2.5:compile
+|  |  |  +- org.freemarker:freemarker:jar:2.3.32:compile
+|  |  |  \- org.springframework:spring-context-support:jar:6.1.6:compile
+|  |  +- org.springframework.cloud:spring-cloud-netflix-eureka-client:jar:4.1.1:compile
+|  |  |  +- com.netflix.eureka:eureka-client:jar:2.0.2:compile
+|  |  |  |  +- com.netflix.netflix-commons:netflix-eventbus:jar:0.3.0:compile
+|  |  |  |  |  +- com.netflix.netflix-commons:netflix-infix:jar:0.3.0:runtime
+|  |  |  |  |  |  +- commons-jxpath:commons-jxpath:jar:1.3:runtime
+|  |  |  |  |  |  +- joda-time:joda-time:jar:2.3:runtime
+|  |  |  |  |  |  +- org.antlr:antlr-runtime:jar:3.4:runtime
+|  |  |  |  |  |  |  +- org.antlr:stringtemplate:jar:3.2.1:runtime
+|  |  |  |  |  |  |  \- antlr:antlr:jar:2.7.7:runtime
+|  |  |  |  |  |  \- com.google.code.gson:gson:jar:2.10.1:runtime
+|  |  |  |  |  \- org.apache.commons:commons-math:jar:2.2:runtime
+|  |  |  |  +- com.thoughtworks.xstream:xstream:jar:1.4.19:compile
+|  |  |  |  |  \- io.github.x-stream:mxparser:jar:1.2.2:compile
+|  |  |  |  |     \- xmlpull:xmlpull:jar:1.1.3.1:compile
+|  |  |  |  +- com.netflix.servo:servo-core:jar:0.12.21:compile
+|  |  |  |  |  \- com.google.guava:guava:jar:19.0:compile
+|  |  |  |  +- org.apache.httpcomponents:httpclient:jar:4.5.3:compile
+|  |  |  |  |  \- org.apache.httpcomponents:httpcore:jar:4.4.16:compile
+|  |  |  |  +- commons-configuration:commons-configuration:jar:1.10:compile
+|  |  |  |  |  \- commons-lang:commons-lang:jar:2.6:compile
+|  |  |  |  \- org.codehaus.jettison:jettison:jar:1.5.4:runtime
+|  |  |  \- org.apache.httpcomponents.client5:httpclient5:jar:5.2.3:compile
+|  |  |     +- org.apache.httpcomponents.core5:httpcore5:jar:5.2.4:compile
+|  |  |     \- org.apache.httpcomponents.core5:httpcore5-h2:jar:5.2.4:compile
+|  |  +- com.netflix.eureka:eureka-client-jersey3:jar:2.0.2:compile
+|  |  |  \- org.glassfish.jersey.connectors:jersey-apache-connector:jar:3.1.6:compile
+|  |  |     +- commons-codec:commons-codec:jar:1.16.1:compile
+|  |  |     \- commons-logging:commons-logging:jar:1.3.1:compile
+|  |  +- com.netflix.eureka:eureka-core-jersey3:jar:2.0.2:compile
+|  |  |  \- com.netflix.eureka:eureka-core:jar:2.0.2:compile
+|  |  +- org.glassfish.jersey.containers:jersey-container-servlet:jar:3.1.6:compile
+|  |  |  +- org.glassfish.jersey.containers:jersey-container-servlet-core:jar:3.1.6:compile
+|  |  |  +- org.glassfish.jersey.core:jersey-common:jar:3.1.6:compile
+|  |  |  |  \- org.glassfish.hk2:osgi-resource-locator:jar:1.0.3:compile
+|  |  |  \- jakarta.ws.rs:jakarta.ws.rs-api:jar:3.1.0:compile
+|  |  +- org.glassfish.jersey.core:jersey-server:jar:3.1.6:compile
+|  |  |  +- jakarta.inject:jakarta.inject-api:jar:2.0.1:compile
+|  |  |  \- jakarta.validation:jakarta.validation-api:jar:3.0.2:compile
+|  |  +- org.glassfish.jersey.core:jersey-client:jar:3.1.6:compile
+|  |  +- org.glassfish.jersey.inject:jersey-hk2:jar:3.1.6:compile
+|  |  |  +- org.glassfish.hk2:hk2-locator:jar:3.0.6:compile
+|  |  |  |  +- org.glassfish.hk2.external:aopalliance-repackaged:jar:3.0.6:compile
+|  |  |  |  \- org.glassfish.hk2:hk2-utils:jar:3.0.6:compile
+|  |  |  \- org.javassist:javassist:jar:3.30.2-GA:compile
+|  |  +- org.glassfish.hk2:spring-bridge:jar:3.1.0:compile
+|  |  |  \- org.glassfish.hk2:hk2-api:jar:3.1.0:compile
+|  |  \- com.fasterxml.jackson.dataformat:jackson-dataformat-xml:jar:2.15.4:compile
+|  |     +- com.fasterxml.jackson.core:jackson-core:jar:2.15.4:compile
+|  |     +- com.fasterxml.jackson.core:jackson-annotations:jar:2.15.4:compile
+|  |     +- com.fasterxml.jackson.core:jackson-databind:jar:2.15.4:compile
+|  |     +- org.codehaus.woodstox:stax2-api:jar:4.2.1:compile
+|  |     \- com.fasterxml.woodstox:woodstox-core:jar:6.5.1:compile
+|  +- org.springframework.cloud:spring-cloud-starter-loadbalancer:jar:4.1.2:compile
+|  |  +- org.springframework.cloud:spring-cloud-loadbalancer:jar:4.1.2:compile
+|  |  |  +- io.projectreactor:reactor-core:jar:3.6.5:compile
+|  |  |  |  \- org.reactivestreams:reactive-streams:jar:1.0.4:compile
+|  |  |  \- io.projectreactor.addons:reactor-extra:jar:3.5.1:compile
+|  |  +- org.springframework.boot:spring-boot-starter-cache:jar:3.2.5:compile
+|  |  \- com.stoyanr:evictor:jar:1.0.0:compile
+|  \- org.glassfish.jaxb:jaxb-runtime:jar:4.0.5:compile
+|     \- org.glassfish.jaxb:jaxb-core:jar:4.0.5:compile
+|        +- org.eclipse.angus:angus-activation:jar:2.0.2:runtime
+|        +- org.glassfish.jaxb:txw2:jar:4.0.5:compile
+|        \- com.sun.istack:istack-commons-runtime:jar:4.1.2:compile
+\- org.springframework.boot:spring-boot-starter-test:jar:3.2.5:test
+   +- org.springframework.boot:spring-boot-test:jar:3.2.5:test
+   +- org.springframework.boot:spring-boot-test-autoconfigure:jar:3.2.5:test
+   +- com.jayway.jsonpath:json-path:jar:2.9.0:test
+   |  \- org.slf4j:slf4j-api:jar:2.0.13:compile
+   +- jakarta.xml.bind:jakarta.xml.bind-api:jar:4.0.2:compile
+   |  \- jakarta.activation:jakarta.activation-api:jar:2.1.3:compile
+   +- net.minidev:json-smart:jar:2.5.1:test
+   |  \- net.minidev:accessors-smart:jar:2.5.1:test
+   |     \- org.ow2.asm:asm:jar:9.6:test
+   +- org.assertj:assertj-core:jar:3.24.2:test
+   |  \- net.bytebuddy:byte-buddy:jar:1.14.13:test
+   +- org.awaitility:awaitility:jar:4.2.1:test
+   +- org.hamcrest:hamcrest:jar:2.2:test
+   +- org.junit.jupiter:junit-jupiter:jar:5.10.2:test
+   |  +- org.junit.jupiter:junit-jupiter-api:jar:5.10.2:test
+   |  |  +- org.opentest4j:opentest4j:jar:1.3.0:test
+   |  |  +- org.junit.platform:junit-platform-commons:jar:1.10.2:test
+   |  |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+   |  +- org.junit.jupiter:junit-jupiter-params:jar:5.10.2:test
+   |  \- org.junit.jupiter:junit-jupiter-engine:jar:5.10.2:test
+   |     \- org.junit.platform:junit-platform-engine:jar:1.10.2:test
+   +- org.mockito:mockito-core:jar:5.7.0:test
+   |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.13:test
+   |  \- org.objenesis:objenesis:jar:3.3:test
+   +- org.mockito:mockito-junit-jupiter:jar:5.7.0:test
+   +- org.skyscreamer:jsonassert:jar:1.5.1:test
+   |  \- com.vaadin.external.google:android-json:jar:0.0.20131108.vaadin1:test
+   +- org.springframework:spring-test:jar:6.1.6:test
+   \- org.xmlunit:xmlunit-core:jar:2.9.1:test
