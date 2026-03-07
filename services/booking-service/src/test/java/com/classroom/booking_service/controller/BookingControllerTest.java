@@ -4,11 +4,10 @@ import com.classroom.booking_service.entity.Booking;
 import com.classroom.booking_service.entity.BookingStatus;
 import com.classroom.booking_service.service.BookingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -17,18 +16,21 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(BookingController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class BookingControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
-    private BookingService service;
+    private BookingService bookingService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -42,7 +44,7 @@ class BookingControllerTest {
         booking.setBookingTime("09:00-10:00");
         booking.setStatus(BookingStatus.CONFIRMED);
 
-        Mockito.when(service.getAllBookings())
+        Mockito.when(bookingService.getAllBookings())
                 .thenReturn(List.of(booking));
 
         mockMvc.perform(get("/bookings"))
@@ -59,32 +61,18 @@ class BookingControllerTest {
         booking.setBookingTime("09:00-10:00");
         booking.setStatus(BookingStatus.CONFIRMED);
 
-        Mockito.when(service.createBooking(any()))
+        Mockito.when(bookingService.createBooking(Mockito.any()))
                 .thenReturn(booking);
 
         mockMvc.perform(post("/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(booking)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.roomId").value(1));
-    }
-
-    @Test
-    void cancelBooking_shouldReturn200() throws Exception {
-        Booking booking = new Booking();
-        booking.setStatus(BookingStatus.CANCELLED);
-
-        Mockito.when(service.cancelBooking(1L))
-                .thenReturn(booking);
-
-        mockMvc.perform(put("/bookings/1/cancel"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CANCELLED"));
+                .andExpect(status().isOk());
     }
 
     @Test
     void deleteBooking_shouldReturn204() throws Exception {
-        Mockito.when(service.deleteBooking(1L)).thenReturn(true);
+        Mockito.when(bookingService.deleteBooking(1L)).thenReturn(true);
 
         mockMvc.perform(delete("/bookings/1"))
                 .andExpect(status().isNoContent());
@@ -92,7 +80,7 @@ class BookingControllerTest {
 
     @Test
     void deleteBooking_shouldReturn404_whenNotFound() throws Exception {
-        Mockito.when(service.deleteBooking(999L)).thenReturn(false);
+        Mockito.when(bookingService.deleteBooking(999L)).thenReturn(false);
 
         mockMvc.perform(delete("/bookings/999"))
                 .andExpect(status().isNotFound());

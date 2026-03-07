@@ -1,10 +1,12 @@
 package com.classroom.room_service.controller;
 
 import com.classroom.room_service.entity.Room;
-import com.classroom.room_service.repository.RoomRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import com.classroom.room_service.service.RoomService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -12,25 +14,19 @@ import java.util.List;
 @RequestMapping("/rooms")
 public class RoomController {
 
-    @Autowired
-    private RoomRepository repository;
+    private final RoomService roomService;
 
-    @PostMapping
-    public Room create(@RequestBody Room room) {
-        return repository.save(room);
+    public RoomController(RoomService roomService) {
+        this.roomService = roomService;
     }
 
     @GetMapping
-    public List<Room> getAll() {
-        return repository.findAll();
+    public List<Room> getAllRooms() {
+        return roomService.getAllRooms();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!repository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        repository.deleteById(id);
-        return ResponseEntity.noContent().build();
+    @PostMapping
+    public Room createRoom(@RequestBody Room room) {
+        return roomService.createRoom(room);
     }
 }
