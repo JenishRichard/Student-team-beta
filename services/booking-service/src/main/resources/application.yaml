@@ -12,8 +12,10 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: true
-    database-platform: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
 
   flyway:
     enabled: true
     baseline-on-migrate: true
+    baseline-version: 0
+    table: flyway_schema_history_booking_service

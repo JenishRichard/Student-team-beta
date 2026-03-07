@@ -10,8 +10,8 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -27,7 +27,7 @@ class BookingControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private BookingService service;
 
     @Autowired
@@ -39,6 +39,7 @@ class BookingControllerTest {
         booking.setRoomId(1L);
         booking.setBookedBy("Jenish");
         booking.setBookingDate(LocalDate.now());
+        booking.setBookingTime("09:00-10:00");
         booking.setStatus(BookingStatus.CONFIRMED);
 
         Mockito.when(service.getAllBookings())
@@ -55,6 +56,7 @@ class BookingControllerTest {
         booking.setRoomId(1L);
         booking.setBookedBy("Jenish");
         booking.setBookingDate(LocalDate.now());
+        booking.setBookingTime("09:00-10:00");
         booking.setStatus(BookingStatus.CONFIRMED);
 
         Mockito.when(service.createBooking(any()))
@@ -78,5 +80,21 @@ class BookingControllerTest {
         mockMvc.perform(put("/bookings/1/cancel"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
+    }
+
+    @Test
+    void deleteBooking_shouldReturn204() throws Exception {
+        Mockito.when(service.deleteBooking(1L)).thenReturn(true);
+
+        mockMvc.perform(delete("/bookings/1"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deleteBooking_shouldReturn404_whenNotFound() throws Exception {
+        Mockito.when(service.deleteBooking(999L)).thenReturn(false);
+
+        mockMvc.perform(delete("/bookings/999"))
+                .andExpect(status().isNotFound());
     }
 }

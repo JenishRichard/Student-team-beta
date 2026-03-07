@@ -1,59 +1,90 @@
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { login } from "../services/auth.service";
 import { useAuth } from "../store/auth";
+import { normalizeRole } from "../types/roles";
 
-const schema = z.object({
-  username: z.string().min(1, "Username required"),
-  password: z.string().min(1, "Password required"),
-});
-type FormData = z.infer<typeof schema>;
+function getPrimaryRoleFromToken(token: string) {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return undefined;
+    const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+    const roles = decoded?.roles;
+    if (Array.isArray(roles) && roles.length > 0 && typeof roles[0] === "string") {
+      return normalizeRole(roles[0]);
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export default function Login() {
   const nav = useNavigate();
   const { setSession } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { username: "", password: "" },
-  });
-
-  const onSubmit = async (values: FormData) => {
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError(null);
+
+    if (!email.trim() || !password.trim()) {
+      setError("Email and password are required");
+      return;
+    }
+
     try {
-      const res = await login(values);
-      setSession(res.token, res.user ?? { username: values.username });
+      setIsSubmitting(true);
+      const normalizedEmail = email.trim().toLowerCase();
+      const res = await login({ email: normalizedEmail, password });
+      const role = getPrimaryRoleFromToken(res.accessToken);
+      setSession(res.accessToken, { username: normalizedEmail, role });
       nav("/dashboard");
     } catch (e: any) {
-      setError(e?.response?.data?.message ?? "Login failed");
+      setError(e?.response?.data?.message ?? e?.message ?? "Login failed");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1>Login</h1>
+    <main className="login-screen">
+      <section className="login-card">
+        <p className="login-kicker">Campus Rooms</p>
+        <h1>Welcome Back</h1>
+        <p className="login-subtitle">Sign in to manage rooms, bookings, and students.</p>
 
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div>
-          <input placeholder="username" {...form.register("username")} />
-          <p>{form.formState.errors.username?.message}</p>
-        </div>
+        <form className="login-form" onSubmit={onSubmit}>
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="e.g. admin@tus.ie"
+            autoComplete="email"
+          />
 
-        <div>
-          <input type="password" placeholder="password" {...form.register("password")} />
-          <p>{form.formState.errors.password?.message}</p>
-        </div>
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            placeholder="Enter password"
+            autoComplete="current-password"
+          />
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+          {error ? <p className="form-error">{error}</p> : null}
 
-        <button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Logging in..." : "Login"}
-        </button>
-      </form>
-    </div>
+          <button className="primary-btn" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Signing in..." : "Sign in"}
+          </button>
+        </form>
+      </section>
+    </main>
   );
 }
