@@ -150,18 +150,17 @@ To avoid "works on my machine" DB issues, `room-service` and `booking-service` n
 
 ### Shared DB values (current)
 
-- `DB_HOST=127.0.0.1`
-- `DB_PORT=3307`
+- `DB_HOST=classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com`
+- `DB_PORT=3306`
 - `DB_NAME=student_db`
-- `DB_USER=root`
-- `DB_PASSWORD=root`
+- `DB_USER=admin`
+- `DB_PASSWORD=admin123`
 
 ### How to run
 
-1. Start MySQL:
-   `docker compose up -d mysql`
+1. Ensure RDS schemas exist: `student_db`, `room_db`, `booking_db`.
 2. Export variables (or configure in IDE run config):
-   `export DB_HOST=127.0.0.1 DB_PORT=3307 DB_NAME=student_db DB_USER=root DB_PASSWORD=root`
+   `export DB_HOST=classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com DB_PORT=3306 DB_NAME=student_db DB_USER=admin DB_PASSWORD=admin123`
 3. Start services.
 
 Flyway will auto-apply missing migrations on startup, so schema changes committed by one teammate are applied for others after pull.
