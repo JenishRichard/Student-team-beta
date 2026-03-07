@@ -7,7 +7,7 @@ import java.time.LocalDate;
 @Table(
 	    name = "bookings",
 	    uniqueConstraints = @UniqueConstraint(
-	            columnNames = {"roomId", "bookingDate", "status"}
+	            columnNames = {"room_id", "booking_date", "booking_time", "status"}
 	    )
 	)
 public class Booking {
@@ -20,7 +20,14 @@ public class Booking {
 
     private String bookedBy;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private BookingIdentity bookedByIdentity = BookingIdentity.TEACHER;
+
     private LocalDate bookingDate;
+
+    @Column(nullable = false, length = 20)
+    private String bookingTime;
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status = BookingStatus.CONFIRMED;
@@ -47,12 +54,28 @@ public class Booking {
         this.bookedBy = bookedBy;
     }
 
+    public BookingIdentity getBookedByIdentity() {
+        return bookedByIdentity;
+    }
+
+    public void setBookedByIdentity(BookingIdentity bookedByIdentity) {
+        this.bookedByIdentity = bookedByIdentity;
+    }
+
     public LocalDate getBookingDate() {
         return bookingDate;
     }
 
     public void setBookingDate(LocalDate bookingDate) {
         this.bookingDate = bookingDate;
+    }
+
+    public String getBookingTime() {
+        return bookingTime;
+    }
+
+    public void setBookingTime(String bookingTime) {
+        this.bookingTime = bookingTime;
     }
 
     public BookingStatus getStatus() {

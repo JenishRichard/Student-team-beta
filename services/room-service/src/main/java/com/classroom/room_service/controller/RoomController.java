@@ -2,7 +2,11 @@ package com.classroom.room_service.controller;
 
 import com.classroom.room_service.entity.Room;
 import com.classroom.room_service.service.RoomService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 

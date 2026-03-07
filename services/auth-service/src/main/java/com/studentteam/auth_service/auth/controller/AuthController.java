@@ -23,14 +23,31 @@ public class AuthController {
   }
 
   @PostMapping("/register")
-  public ResponseEntity<Void> register(@Valid @RequestBody AuthDtos.RegisterRequest req) {
-    authService.register(req);
-    return ResponseEntity.ok().build();
+  public ResponseEntity<AuthDtos.UserResponse> register(@Valid @RequestBody AuthDtos.RegisterRequest req) {
+    return ResponseEntity.ok(authService.createUser(req));
   }
 
   @PostMapping("/login")
   public ResponseEntity<AuthDtos.AuthResponse> login(@Valid @RequestBody AuthDtos.LoginRequest req) {
     return ResponseEntity.ok(authService.login(req));
+  }
+
+  @GetMapping("/users")
+  public ResponseEntity<List<AuthDtos.UserResponse>> getUsers() {
+    return ResponseEntity.ok(authService.listUsers());
+  }
+
+  @PutMapping("/users/{userId}")
+  public ResponseEntity<AuthDtos.UserResponse> updateUser(
+      @PathVariable String userId,
+      @RequestBody AuthDtos.UpdateUserRequest req) {
+    return ResponseEntity.ok(authService.updateUser(userId, req));
+  }
+
+  @DeleteMapping("/users/{userId}")
+  public ResponseEntity<Void> deleteUser(@PathVariable String userId) {
+    authService.deleteUser(userId);
+    return ResponseEntity.noContent().build();
   }
 
   @GetMapping("/me")

@@ -17,3 +17,5 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+    baseline-version: 0
+    table: flyway_schema_history_room_service
