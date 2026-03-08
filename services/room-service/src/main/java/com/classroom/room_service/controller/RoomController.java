@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -28,8 +29,13 @@ public class RoomController {
 
     // GET /rooms
     @GetMapping
-    public ResponseEntity<List<Room>> getAllRooms() {
-        return ResponseEntity.ok(roomService.getAllRooms());
+    public ResponseEntity<List<Room>> getRooms(
+            @RequestParam(required = false) String roomNumber,
+            @RequestParam(required = false) String building,
+            @RequestParam(required = false) String type) {
+
+        List<Room> rooms = roomService.filterRooms(roomNumber, building, type);
+        return ResponseEntity.ok(rooms);
     }
 
     // GET /rooms/{id}
