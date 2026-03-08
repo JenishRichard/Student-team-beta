@@ -7,6 +7,8 @@ import java.util.List;
 public interface RoomService {
 
     List<Room> getAllRooms();
+    
+    List<Room> filterRooms(String roomNumber, String building, String type);
 
     Room getRoomById(Long id);
 
