@@ -1,11 +1,5 @@
 pipeline {
-  agent {
-    docker {
-      image 'maven:3.9.9-eclipse-temurin-21'
-      args '-v $HOME/.m2:/root/.m2'
-      reuseNode true
-    }
-  }
+  agent any
 
   options {
     timestamps()
@@ -22,6 +16,8 @@ pipeline {
   }
 
   environment {
+    MAVEN_IMAGE = 'maven:3.9.9-eclipse-temurin-21'
+    NODE_IMAGE = 'node:20'
     MAVEN_ARGS = '-B -ntp'
     SERVICE_DIRS = 'services/discovery-server services/config-server services/auth-service services/room-service services/booking-service services/api-gateway'
   }
@@ -48,8 +44,13 @@ pipeline {
       steps {
         sh '''
           set -eux
-          java -version
-          mvn -version
+          docker --version
+          docker run --rm "$MAVEN_IMAGE" java -version
+          docker run --rm -v "$PWD":/workspace -v "$HOME/.m2":/root/.m2 -w /workspace "$MAVEN_IMAGE" mvn -version
+          if [ "${BUILD_UI}" = "true" ]; then
+            docker run --rm "$NODE_IMAGE" node -v
+            docker run --rm "$NODE_IMAGE" npm -v
+          fi
         '''
       }
     }
@@ -60,7 +61,8 @@ pipeline {
           set -eux
           for svc in $SERVICE_DIRS; do
             echo "==> Testing $svc"
-            mvn $MAVEN_ARGS -f "$svc/pom.xml" clean test
+            docker run --rm -v "$PWD":/workspace -v "$HOME/.m2":/root/.m2 -w /workspace "$MAVEN_IMAGE" \
+              mvn $MAVEN_ARGS -f "$svc/pom.xml" clean test
           done
         '''
       }
@@ -72,7 +74,8 @@ pipeline {
           set -eux
           for svc in $SERVICE_DIRS; do
             echo "==> Packaging $svc"
-            mvn $MAVEN_ARGS -f "$svc/pom.xml" -DskipTests package
+            docker run --rm -v "$PWD":/workspace -v "$HOME/.m2":/root/.m2 -w /workspace "$MAVEN_IMAGE" \
+              mvn $MAVEN_ARGS -f "$svc/pom.xml" -DskipTests package
           done
         '''
       }
@@ -82,22 +85,16 @@ pipeline {
       when {
         expression { return params.BUILD_UI }
       }
-      agent {
-        docker {
-          image 'node:20'
-          reuseNode true
-        }
-      }
       steps {
-        dir('ui') {
-          sh '''
-            set -eux
+        sh '''
+          set -eux
+          docker run --rm -v "$PWD/ui":/workspace -w /workspace "$NODE_IMAGE" sh -lc '
             node -v
             npm -v
             npm ci
             npm run build
-          '''
-        }
+          '
+        '''
       }
     }
 
@@ -134,24 +131,33 @@ pipeline {
               svc_dir="$1"
               app_name="$2"
               port="$3"
-              log_file=".runlogs/${svc_dir##*/}-rds-integration.log"
+              service_name="${svc_dir##*/}"
+              container_name="ci-rds-${service_name}"
 
               echo "==> Starting ${svc_dir} on port ${port} with RDS (${RDS_HOST}:${RDS_PORT})"
-              DB_HOST="$RDS_HOST" DB_PORT="$RDS_PORT" DB_USER="$RDS_DB_USER" DB_PASSWORD="$RDS_DB_PASSWORD" \
+              docker rm -f "$container_name" >/dev/null 2>&1 || true
+              docker run -d --name "$container_name" \
+                -e DB_HOST="$RDS_HOST" \
+                -e DB_PORT="$RDS_PORT" \
+                -e DB_USER="$RDS_DB_USER" \
+                -e DB_PASSWORD="$RDS_DB_PASSWORD" \
+                -v "$PWD":/workspace \
+                -v "$HOME/.m2":/root/.m2 \
+                -w /workspace \
+                "$MAVEN_IMAGE" \
                 mvn $MAVEN_ARGS -f "${svc_dir}/pom.xml" \
-                spring-boot:run -Dspring-boot.run.arguments="--server.port=${port}" >"$log_file" 2>&1 &
+                spring-boot:run -Dspring-boot.run.arguments="--server.port=${port}" >/dev/null
 
-              pid=$!
               started=0
 
               for _ in $(seq 1 60); do
-                if grep -q "Started ${app_name}" "$log_file"; then
+                if docker logs "$container_name" 2>&1 | grep -q "Started ${app_name}"; then
                   started=1
                   break
                 fi
-                if ! kill -0 "$pid" 2>/dev/null; then
+                if ! docker ps --format '{{.Names}}' | grep -q "^${container_name}$"; then
                   echo "${svc_dir} exited before startup. Last logs:"
-                  tail -n 120 "$log_file" || true
+                  docker logs --tail 120 "$container_name" || true
                   exit 1
                 fi
                 sleep 2
@@ -159,15 +165,13 @@ pipeline {
 
               if [ "$started" -ne 1 ]; then
                 echo "Timed out waiting for ${svc_dir} startup. Last logs:"
-                tail -n 120 "$log_file" || true
-                kill "$pid" 2>/dev/null || true
-                wait "$pid" 2>/dev/null || true
+                docker logs --tail 120 "$container_name" || true
+                docker rm -f "$container_name" >/dev/null 2>&1 || true
                 exit 1
               fi
 
               echo "${svc_dir} started successfully with RDS."
-              kill "$pid" 2>/dev/null || true
-              wait "$pid" 2>/dev/null || true
+              docker rm -f "$container_name" >/dev/null 2>&1 || true
             }
 
             start_and_check "services/auth-service" "AuthServiceApplication" "18084"
