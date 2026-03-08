@@ -27,6 +27,16 @@ pipeline {
                 }
             }
         }
+
+        stage('Check test reports') {
+            steps {
+                sh '''
+                    echo "Checking surefire reports..."
+                    find services -type d -name "surefire-reports" || true
+                    find services -type f -path "*/target/surefire-reports/*.xml" || true
+                '''
+            }
+        }
     }
 
     post {
