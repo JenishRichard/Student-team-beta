@@ -8,7 +8,7 @@ pipeline {
 
   parameters {
     booleanParam(name: 'BUILD_UI', defaultValue: true, description: 'Run UI install/build stages')
-    booleanParam(name: 'BUILD_DOCKER', defaultValue: false, description: 'Build Docker images using docker compose')
+    booleanParam(name: 'BUILD_DOCKER', defaultValue: true, description: 'Build Docker images using docker compose')
     booleanParam(name: 'RUN_RDS_INTEGRATION', defaultValue: false, description: 'Run optional RDS-backed startup checks for DB services')
     string(name: 'RDS_HOST', defaultValue: 'classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com', description: 'RDS hostname used only in optional integration stage')
     string(name: 'RDS_PORT', defaultValue: '3306', description: 'RDS port used only in optional integration stage')
