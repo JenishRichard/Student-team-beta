@@ -55,4 +55,16 @@ public class RoomServiceImpl implements RoomService {
 
         roomRepository.delete(existing);
     }
+    
+    @Override
+    public List<Room> filterRooms(String roomNumber, String building, String type) {
+
+        List<Room> rooms = roomRepository.findAll();
+
+        return rooms.stream()
+                .filter(r -> roomNumber == null || r.getRoomNumber().equalsIgnoreCase(roomNumber))
+                .filter(r -> building == null || r.getBuilding().equalsIgnoreCase(building))
+                .filter(r -> type == null || r.getType().equalsIgnoreCase(type))
+                .toList();
+    }
 }
