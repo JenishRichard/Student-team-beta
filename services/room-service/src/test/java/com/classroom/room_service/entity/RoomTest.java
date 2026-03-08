@@ -26,7 +26,7 @@ class RoomTest {
         assertThat(room.getRoomNumber()).isEqualTo("A101");
         assertThat(room.getBuilding()).isEqualTo("Main Block");
         assertThat(room.getCapacity()).isEqualTo(40);
-        assertThat(room.getType()).isEqualTo("LECTURE");
+        assertThat(room.getType()).isEqualTo("HALL");
         assertThat(room.getAvailable()).isFalse();
     }
 }
