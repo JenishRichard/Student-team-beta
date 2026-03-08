@@ -1,9 +1,10 @@
 pipeline {
-  agent any
-
-  tools {
-    jdk 'JDK17'
-    maven 'Maven3'
+  agent {
+    docker {
+      image 'maven:3.9.9-eclipse-temurin-21'
+      args '-v $HOME/.m2:/root/.m2'
+      reuseNode true
+    }
   }
 
   options {
@@ -49,10 +50,6 @@ pipeline {
           set -eux
           java -version
           mvn -version
-          if [ "${BUILD_UI}" = "true" ]; then
-            node -v
-            npm -v
-          fi
         '''
       }
     }
@@ -85,10 +82,18 @@ pipeline {
       when {
         expression { return params.BUILD_UI }
       }
+      agent {
+        docker {
+          image 'node:20'
+          reuseNode true
+        }
+      }
       steps {
         dir('ui') {
           sh '''
             set -eux
+            node -v
+            npm -v
             npm ci
             npm run build
           '''
@@ -100,6 +105,7 @@ pipeline {
       when {
         expression { return params.BUILD_DOCKER }
       }
+      agent any
       steps {
         sh '''
           set -eux
