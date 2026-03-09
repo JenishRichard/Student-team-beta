@@ -108,13 +108,16 @@ pipeline {
               done
 
               echo "==> SonarQube analysis for UI (student-team-beta-ui)"
-              docker run --rm \
+              mkdir -p "$PWD/.sonar-ui-cache"
+              docker run --rm --platform linux/arm64/v8 \
                 -e SONAR_HOST_URL="$SONAR_HOST_URL" \
                 -e SONAR_TOKEN="$SONAR_TOKEN" \
                 -e SONAR_SCANNER_JAVA_OPTS="-Xms512m -Xmx2048m" \
                 -e SONAR_SCANNER_OPTS="-Xms512m -Xmx2048m" \
                 -e NODE_OPTIONS="--max-old-space-size=4096" \
+                -e SONAR_USER_HOME="/tmp/.sonar" \
                 -v "$PWD/ui":/usr/src \
+                -v "$PWD/.sonar-ui-cache":/tmp/.sonar \
                 "$SONAR_SCANNER_IMAGE" \
                 sonar-scanner \
                   -Dsonar.projectKey=student-team-beta-ui \
