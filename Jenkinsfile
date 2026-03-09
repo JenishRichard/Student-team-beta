@@ -41,8 +41,11 @@ pipeline {
 
     post {
         always {
-            junit allowEmptyResults: true, testResults: 'services/**/target/surefire-reports/*.xml'
-            archiveArtifacts artifacts: 'services/**/target/*.jar', fingerprint: true
+        junit allowEmptyResults: true, testResults: '''
+            services/room-service/target/surefire-reports/*.xml,
+            services/booking-service/target/surefire-reports/*.xml
+        '''
+        archiveArtifacts artifacts: 'services/**/target/*.jar', fingerprint: true
         }
 
         success {
