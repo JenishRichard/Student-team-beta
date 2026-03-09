@@ -9,6 +9,9 @@ pipeline {
   parameters {
     booleanParam(name: 'BUILD_UI', defaultValue: true, description: 'Run UI install/build stages')
     booleanParam(name: 'BUILD_DOCKER', defaultValue: true, description: 'Build Docker images using docker compose')
+    booleanParam(name: 'RUN_SONARQUBE', defaultValue: false, description: 'Run SonarQube analysis for backend services')
+    string(name: 'SONARQUBE_SERVER', defaultValue: 'SonarQube', description: 'Configured SonarQube server name in Jenkins')
+    string(name: 'SONAR_TOKEN_CREDENTIALS_ID', defaultValue: 'sonarqube-token', description: 'Jenkins Secret Text credentials ID for SonarQube token')
     booleanParam(name: 'RUN_RDS_INTEGRATION', defaultValue: false, description: 'Run optional RDS-backed startup checks for DB services')
     string(name: 'RDS_HOST', defaultValue: 'classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com', description: 'RDS hostname used only in optional integration stage')
     string(name: 'RDS_PORT', defaultValue: '3306', description: 'RDS port used only in optional integration stage')
@@ -78,6 +81,32 @@ pipeline {
               mvn $MAVEN_ARGS -f "$svc/pom.xml" -DskipTests package
           done
         '''
+      }
+    }
+
+    stage('SonarQube Analysis (Optional)') {
+      when {
+        expression { return params.RUN_SONARQUBE }
+      }
+      steps {
+        withSonarQubeEnv("${params.SONARQUBE_SERVER}") {
+          withCredentials([string(credentialsId: params.SONAR_TOKEN_CREDENTIALS_ID, variable: 'SONAR_TOKEN')]) {
+            sh '''
+              set -eux
+              for svc in $SERVICE_DIRS; do
+                service_name="${svc##*/}"
+                project_key="student-team-beta-${service_name}"
+                echo "==> SonarQube analysis for ${svc} (${project_key})"
+                docker run --rm -v "$PWD":/workspace -v "$HOME/.m2":/root/.m2 -w /workspace "$MAVEN_IMAGE" \
+                  mvn $MAVEN_ARGS -f "$svc/pom.xml" -DskipTests sonar:sonar \
+                    -Dsonar.host.url="$SONAR_HOST_URL" \
+                    -Dsonar.token="$SONAR_TOKEN" \
+                    -Dsonar.projectKey="$project_key" \
+                    -Dsonar.projectName="$project_key"
+              done
+            '''
+          }
+        }
       }
     }
 
