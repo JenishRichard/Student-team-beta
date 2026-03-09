@@ -21,15 +21,11 @@ public class BookingService {
         this.bookingRepository = bookingRepository;
     }
 
-    // GET ALL BOOKINGS
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
     }
 
-    // CREATE BOOKING
     public Booking createBooking(Booking booking) {
-
-        // check existing bookings for same room and date
         List<Booking> existingBookings =
                 bookingRepository.findByRoomIdAndBookingDateAndStatus(
                         booking.getRoomId(),
@@ -56,7 +52,6 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
-    // CANCEL BOOKING
     public Booking cancelBooking(Long id) {
 
         Booking booking = bookingRepository.findById(id)
@@ -67,7 +62,6 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
-    // DELETE BOOKING
     public void deleteBooking(Long id) {
 
         if (!bookingRepository.existsById(id)) {
@@ -77,7 +71,6 @@ public class BookingService {
         bookingRepository.deleteById(id);
     }
 
-    // CHECK ROOM AVAILABILITY
     public boolean isRoomAvailable(Long roomId, String range) {
 
         TimeRange requestedRange = parseRange(range);
