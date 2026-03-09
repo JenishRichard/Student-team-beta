@@ -41,12 +41,21 @@ pipeline {
                 '''
             }
         }
+
+        stage('Check JaCoCo reports') {
+            steps {
+                sh '''
+                    echo "Checking JaCoCo reports..."
+                    find services -type d -path "*/target/site/jacoco" || true
+                    find services -type f -path "*/target/site/jacoco/*" || true
+                '''
+            }
     }
 
     post {
         always {
             junit testResults: 'services/**/target/surefire-reports/*.xml', allowEmptyResults: true
-            archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml', fingerprint: true
+            archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, fingerprint: true
         }
 
         success {
