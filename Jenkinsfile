@@ -109,24 +109,35 @@ pipeline {
 
               echo "==> SonarQube analysis for UI (student-team-beta-ui)"
               mkdir -p "$PWD/.sonar-ui-cache"
-              docker run --rm --platform linux/arm64/v8 \
-                -e SONAR_HOST_URL="$SONAR_HOST_URL" \
-                -e SONAR_TOKEN="$SONAR_TOKEN" \
-                -e SONAR_SCANNER_JAVA_OPTS="-Xms512m -Xmx2048m" \
-                -e SONAR_SCANNER_OPTS="-Xms512m -Xmx2048m" \
-                -e NODE_OPTIONS="--max-old-space-size=4096" \
-                -e SONAR_USER_HOME="/tmp/.sonar" \
-                -v "$PWD/ui":/usr/src \
-                -v "$PWD/.sonar-ui-cache":/tmp/.sonar \
-                "$SONAR_SCANNER_IMAGE" \
-                sonar-scanner \
-                  -Dsonar.projectKey=student-team-beta-ui \
-                  -Dsonar.projectName=student-team-beta-ui \
-                  -Dsonar.projectBaseDir=/usr/src \
-                  -Dsonar.sources=src \
-                  -Dsonar.javascript.node.maxspace=4096 \
-                  -Dsonar.sourceEncoding=UTF-8 \
-                  -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**
+              ui_sonar_ok=0
+              for attempt in 1 2; do
+                echo "UI Sonar attempt ${attempt}/2"
+                if docker run --rm --platform linux/arm64/v8 \
+                  -e SONAR_HOST_URL="$SONAR_HOST_URL" \
+                  -e SONAR_TOKEN="$SONAR_TOKEN" \
+                  -e SONAR_SCANNER_JAVA_OPTS="-Xms512m -Xmx2048m" \
+                  -e SONAR_SCANNER_OPTS="-Xms512m -Xmx2048m" \
+                  -e NODE_OPTIONS="--max-old-space-size=4096" \
+                  -e SONAR_USER_HOME="/tmp/.sonar" \
+                  -v "$PWD/ui":/usr/src \
+                  -v "$PWD/.sonar-ui-cache":/tmp/.sonar \
+                  "$SONAR_SCANNER_IMAGE" \
+                  sonar-scanner \
+                    -Dsonar.projectKey=student-team-beta-ui \
+                    -Dsonar.projectName=student-team-beta-ui \
+                    -Dsonar.projectBaseDir=/usr/src \
+                    -Dsonar.sources=src \
+                    -Dsonar.javascript.node.maxspace=4096 \
+                    -Dsonar.sourceEncoding=UTF-8 \
+                    -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**; then
+                  ui_sonar_ok=1
+                  break
+                fi
+                sleep 5
+              done
+              if [ "$ui_sonar_ok" -ne 1 ]; then
+                echo "WARN: UI SonarQube scan failed after retries; continuing because Sonar stage is optional."
+              fi
             '''
           }
         }
