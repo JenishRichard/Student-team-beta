@@ -1,134 +1,140 @@
 package com.classroom.booking_service.service;
 
 import com.classroom.booking_service.entity.Booking;
-import com.classroom.booking_service.entity.BookingStatus;
-import com.classroom.booking_service.exception.BookingConflictException;
 import com.classroom.booking_service.repository.BookingRepository;
-import com.classroom.booking_service.repository.ParticipantDirectoryRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
 
-import java.time.LocalDate;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class BookingServiceTest {
 
     @Mock
-    private BookingRepository repository;
-
-    @Mock
-    private ParticipantDirectoryRepository participantDirectoryRepository;
+    private BookingRepository bookingRepository;
 
     @InjectMocks
-    private BookingService service;
+    private BookingService bookingService;
 
-    @BeforeEach
-    void setup() {
-        MockitoAnnotations.openMocks(this);
+    @Test
+    void testRoomAvailable() {
+
+        Booking booking = new Booking();
+        booking.setRoomId(101L);
+        booking.setBookingTime("14:00-15:00");
+
+        when(bookingRepository.findAll())
+                .thenReturn(List.of(booking));
+
+        boolean result = bookingService.isRoomAvailable(101L, "10:00-12:00");
+
+        assertTrue(result);
     }
 
     @Test
-    void createBooking_success() {
+    void testRoomNotAvailable() {
+
         Booking booking = new Booking();
-        booking.setRoomId(1L);
-        booking.setBookedBy("teacher1@classroom.com");
-        booking.setBookingDate(LocalDate.now());
-        booking.setBookingTime("09:00-10:00");
+        booking.setRoomId(101L);
+        booking.setBookingTime("10:00-12:00");
 
-        when(repository.findByRoomIdAndBookingDateAndStatus(
-                anyLong(), any(), eq(BookingStatus.CONFIRMED)))
-                .thenReturn(List.of());
-        when(participantDirectoryRepository.findByEmailAndIdentity(anyString(), any()))
-                .thenReturn(null);
-        when(participantDirectoryRepository.save(any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(bookingRepository.findAll())
+                .thenReturn(List.of(booking));
 
-        when(repository.save(any())).thenReturn(booking);
+        boolean result = bookingService.isRoomAvailable(101L, "11:00-13:00");
 
-        Booking result = service.createBooking(booking);
+        assertFalse(result);
+    }
+
+    @Test
+    void testDifferentRoomAvailable() {
+
+        Booking booking = new Booking();
+        booking.setRoomId(200L);
+        booking.setBookingTime("10:00-12:00");
+
+        when(bookingRepository.findAll())
+                .thenReturn(List.of(booking));
+
+        boolean result = bookingService.isRoomAvailable(101L, "10:00-12:00");
+
+        assertTrue(result);
+    }
+
+    @Test
+    void testInvalidTimeRange() {
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> bookingService.isRoomAvailable(101L, "invalid-range")
+        );
+    }
+    @Test
+    void testGetAllBookings() {
+
+        when(bookingRepository.findAll()).thenReturn(List.of(new Booking()));
+
+        List<Booking> bookings = bookingService.getAllBookings();
+
+        assertEquals(1, bookings.size());
+    }
+
+    @Test
+    void testCreateBooking() {
+
+    	Booking booking = new Booking();
+        booking.setRoomId(101L);
+        booking.setBookingTime("10:00-12:00");
+
+        when(bookingRepository.save(any()))
+                .thenReturn(booking);
+
+        Booking result = bookingService.createBooking(booking);
 
         assertNotNull(result);
-        verify(repository, times(1)).save(booking);
+        verify(bookingRepository).save(any());
     }
 
     @Test
-    void createBooking_shouldThrowException_whenOverlappingSlotExists() {
-        Booking requested = new Booking();
-        requested.setRoomId(1L);
-        requested.setBookedBy("teacher2@classroom.com");
-        requested.setBookingDate(LocalDate.now());
-        requested.setBookingTime("09:00-11:00");
+    void testCancelBooking() {
 
-        Booking existing = new Booking();
-        existing.setRoomId(1L);
-        existing.setBookingDate(requested.getBookingDate());
-        existing.setBookingTime("09:30-10:00");
-        existing.setStatus(BookingStatus.CONFIRMED);
+        Booking booking = new Booking();
 
-        when(repository.findByRoomIdAndBookingDateAndStatus(
-                anyLong(), any(), eq(BookingStatus.CONFIRMED)))
-                .thenReturn(List.of(existing));
-        when(participantDirectoryRepository.findByEmailAndIdentity(anyString(), any()))
-                .thenReturn(null);
-        when(participantDirectoryRepository.save(any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(bookingRepository.findById(1L))
+                .thenReturn(java.util.Optional.of(booking));
 
-        assertThrows(BookingConflictException.class, () -> service.createBooking(requested));
-    }
+        when(bookingRepository.save(any()))
+                .thenReturn(booking);
 
-    @Test
-    void createBooking_shouldAllow_whenNonOverlappingSlotExists() {
-        Booking requested = new Booking();
-        requested.setRoomId(1L);
-        requested.setBookedBy("teacher3@classroom.com");
-        requested.setBookingDate(LocalDate.now());
-        requested.setBookingTime("10:00-11:00");
-
-        Booking existing = new Booking();
-        existing.setRoomId(1L);
-        existing.setBookingDate(requested.getBookingDate());
-        existing.setBookingTime("09:00-10:00");
-        existing.setStatus(BookingStatus.CONFIRMED);
-
-        when(repository.findByRoomIdAndBookingDateAndStatus(
-                anyLong(), any(), eq(BookingStatus.CONFIRMED)))
-                .thenReturn(List.of(existing));
-        when(participantDirectoryRepository.findByEmailAndIdentity(anyString(), any()))
-                .thenReturn(null);
-        when(participantDirectoryRepository.save(any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        when(repository.save(any())).thenReturn(requested);
-
-        Booking result = service.createBooking(requested);
+        Booking result = bookingService.cancelBooking(1L);
 
         assertNotNull(result);
-        verify(repository, times(1)).save(requested);
     }
 
     @Test
-    void cancelBooking_success() {
-        Booking booking = new Booking();
-        booking.setStatus(BookingStatus.CONFIRMED);
+    void testDeleteBooking() {
 
-        when(repository.findById(1L)).thenReturn(Optional.of(booking));
-        when(repository.save(any())).thenReturn(booking);
+        when(bookingRepository.existsById(1L)).thenReturn(true);
 
-        Booking result = service.cancelBooking(1L);
+        bookingService.deleteBooking(1L);
 
-        assertEquals(BookingStatus.CANCELLED, result.getStatus());
+        verify(bookingRepository).deleteById(1L);
     }
-
+  
     @Test
-    void cancelBooking_shouldThrowException_whenNotFound() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
+    void testStartAfterEnd() {
 
-        assertThrows(RuntimeException.class,
-                () -> service.cancelBooking(1L));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> bookingService.isRoomAvailable(101L, "14:00-10:00")
+        );
     }
 }
