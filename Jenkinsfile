@@ -94,6 +94,12 @@ pipeline {
           withCredentials([string(credentialsId: params.SONAR_TOKEN_CREDENTIALS_ID, variable: 'SONAR_TOKEN')]) {
             sh '''
               set -eux
+              sonar_reachable=1
+              if ! docker run --rm "$NODE_IMAGE" sh -lc 'node -e '"'"'const net=require("net"); const s=net.createConnection({host:"host.docker.internal",port:9000}); s.setTimeout(3000); const fail=()=>process.exit(1); s.on("connect",()=>{s.end();process.exit(0)}); s.on("timeout",fail); s.on("error",fail);'"'"''; then
+                sonar_reachable=0
+                echo "WARN: SonarQube host is unreachable from Docker; skipping SonarQube stage."
+              fi
+              if [ "$sonar_reachable" -eq 1 ]; then
               for svc in $SERVICE_DIRS; do
                 service_name="${svc##*/}"
                 project_key="student-team-beta-${service_name}"
@@ -104,7 +110,9 @@ pipeline {
                     -Dsonar.token="$SONAR_TOKEN" \
                     -Dsonar.projectKey="$project_key" \
                     -Dsonar.projectName="$project_key" \
-                    -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                    -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml || {
+                      echo "WARN: SonarQube scan failed for ${svc}; continuing because Sonar stage is optional."
+                    }
               done
 
               echo "==> SonarQube analysis for UI (student-team-beta-ui)"
@@ -142,6 +150,7 @@ pipeline {
               fi
               if [ "$ui_sonar_ok" -ne 1 ]; then
                 echo "WARN: UI SonarQube scan failed after retries; continuing because Sonar stage is optional."
+              fi
               fi
             '''
           }
