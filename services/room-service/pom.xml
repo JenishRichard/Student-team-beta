@@ -72,12 +72,56 @@
 	</dependencies>
 
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
+	    <plugins>
+	
+	        <!-- Spring Boot Plugin -->
+	        <plugin>
+	            <groupId>org.springframework.boot</groupId>
+	            <artifactId>spring-boot-maven-plugin</artifactId>
+	        </plugin>
+	
+	        <!-- JaCoCo Plugin for Test Coverage -->
+	        <plugin>
+	            <groupId>org.jacoco</groupId>
+	            <artifactId>jacoco-maven-plugin</artifactId>
+	            <version>0.8.11</version>
+	
+	            <executions>
+	
+	                <execution>
+	                    <goals>
+	                        <goal>prepare-agent</goal>
+	                    </goals>
+	                </execution>
+	
+	                <execution>
+	                    <id>report</id>
+	                    <phase>test</phase>
+	                    <goals>
+	                        <goal>report</goal>
+	                    </goals>
+	                </execution>
+	
+	            </executions>
+	
+	            <configuration>
+	                <excludes>
+	
+	                    <!-- Exclude Spring Boot main class -->
+	                    <exclude>**/RoomServiceApplication*</exclude>
+	
+	                    <!-- Exclude entity classes -->
+	                    <exclude>**/entity/**</exclude>
+	
+	                    <!-- Exclude exception classes -->
+	                    <exclude>**/exception/**</exclude>
+	
+	                </excludes>
+	            </configuration>
+	
+	        </plugin>
+	
+	    </plugins>
 	</build>
 
 </project>
