@@ -71,10 +71,10 @@
 		</dependency>
 	</dependencies>
 
-	<build>
-	    <plugins>
-	
-	        <!-- Spring Boot Plugin -->
+		<build>
+		    <plugins>
+		
+		        <!-- Spring Boot Plugin -->
 		        <plugin>
 		            <groupId>org.springframework.boot</groupId>
 		            <artifactId>spring-boot-maven-plugin</artifactId>
@@ -89,8 +89,8 @@
 		        <!-- JaCoCo Plugin for Test Coverage -->
 		        <plugin>
 		            <groupId>org.jacoco</groupId>
-	            <artifactId>jacoco-maven-plugin</artifactId>
-	            <version>0.8.11</version>
+		            <artifactId>jacoco-maven-plugin</artifactId>
+		            <version>0.8.11</version>
 	
 	            <executions>
 	
