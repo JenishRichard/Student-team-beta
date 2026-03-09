@@ -111,6 +111,9 @@ pipeline {
               docker run --rm \
                 -e SONAR_HOST_URL="$SONAR_HOST_URL" \
                 -e SONAR_TOKEN="$SONAR_TOKEN" \
+                -e SONAR_SCANNER_JAVA_OPTS="-Xms512m -Xmx2048m" \
+                -e SONAR_SCANNER_OPTS="-Xms512m -Xmx2048m" \
+                -e NODE_OPTIONS="--max-old-space-size=4096" \
                 -v "$PWD/ui":/usr/src \
                 "$SONAR_SCANNER_IMAGE" \
                 sonar-scanner \
@@ -118,6 +121,8 @@ pipeline {
                   -Dsonar.projectName=student-team-beta-ui \
                   -Dsonar.projectBaseDir=/usr/src \
                   -Dsonar.sources=src \
+                  -Dsonar.javascript.node.maxspace=4096 \
+                  -Dsonar.scm.provider=git \
                   -Dsonar.sourceEncoding=UTF-8 \
                   -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**
             '''
