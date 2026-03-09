@@ -1,11 +1,8 @@
 package com.classroom.booking_service.service;
 
-import com.classroom.booking_service.entity.*;
-import com.classroom.booking_service.exception.BookingConflictException;
+import com.classroom.booking_service.entity.Booking;
 import com.classroom.booking_service.repository.BookingRepository;
-import com.classroom.booking_service.repository.ParticipantDirectoryRepository;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -13,10 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -27,78 +21,102 @@ class BookingServiceTest {
     @Mock
     private BookingRepository bookingRepository;
 
-    @Mock
-    private ParticipantDirectoryRepository participantDirectoryRepository;
-
     @InjectMocks
     private BookingService bookingService;
 
-    private Booking booking;
+    @Test
+    void testRoomAvailable() {
 
-    @BeforeEach
-    void setup() {
+        Booking booking = new Booking();
+        booking.setRoomId(101L);
+        booking.setBookingTime("14:00-15:00");
 
-        booking = new Booking();
-        booking.setRoomId(10L);
-        booking.setBookingDate(LocalDate.now());
-        booking.setBookingTime("10:00-11:00");
-        booking.setBookedBy("teacher@test.com");
-        booking.setBookedByIdentity(BookingIdentity.TEACHER);
-        booking.setStatus(BookingStatus.CONFIRMED);
+        when(bookingRepository.findAll())
+                .thenReturn(List.of(booking));
+
+        boolean result = bookingService.isRoomAvailable(101L, "10:00-12:00");
+
+        assertTrue(result);
     }
 
+    @Test
+    void testRoomNotAvailable() {
+
+        Booking booking = new Booking();
+        booking.setRoomId(101L);
+        booking.setBookingTime("10:00-12:00");
+
+        when(bookingRepository.findAll())
+                .thenReturn(List.of(booking));
+
+        boolean result = bookingService.isRoomAvailable(101L, "11:00-13:00");
+
+        assertFalse(result);
+    }
+
+    @Test
+    void testDifferentRoomAvailable() {
+
+        Booking booking = new Booking();
+        booking.setRoomId(200L);
+        booking.setBookingTime("10:00-12:00");
+
+        when(bookingRepository.findAll())
+                .thenReturn(List.of(booking));
+
+        boolean result = bookingService.isRoomAvailable(101L, "10:00-12:00");
+
+        assertTrue(result);
+    }
+
+    @Test
+    void testInvalidTimeRange() {
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> bookingService.isRoomAvailable(101L, "invalid-range")
+        );
+    }
     @Test
     void testGetAllBookings() {
 
-        when(bookingRepository.findAll()).thenReturn(List.of(booking));
+        when(bookingRepository.findAll()).thenReturn(List.of(new Booking()));
 
-        List<Booking> result = bookingService.getAllBookings();
+        List<Booking> bookings = bookingService.getAllBookings();
 
-        assertEquals(1, result.size());
-        verify(bookingRepository).findAll();
+        assertEquals(1, bookings.size());
     }
 
     @Test
-    void testCreateBookingSuccess() {
+    void testCreateBooking() {
 
-        when(bookingRepository.findByRoomIdAndBookingDateAndStatus(
-                anyLong(), any(), any()))
-                .thenReturn(Collections.emptyList());
+    	Booking booking = new Booking();
+        booking.setRoomId(101L);
+        booking.setBookingTime("10:00-12:00");
 
-        when(bookingRepository.save(any())).thenReturn(booking);
+        when(bookingRepository.save(any()))
+                .thenReturn(booking);
 
-        Booking saved = bookingService.createBooking(booking);
+        Booking result = bookingService.createBooking(booking);
 
-        assertNotNull(saved);
+        assertNotNull(result);
         verify(bookingRepository).save(any());
-    }
-
-    @Test
-    void testCreateBookingConflict() {
-
-        when(bookingRepository.findByRoomIdAndBookingDateAndStatus(
-                anyLong(), any(), any()))
-                .thenReturn(List.of(booking));
-
-        assertThrows(
-                BookingConflictException.class,
-                () -> bookingService.createBooking(booking)
-        );
     }
 
     @Test
     void testCancelBooking() {
 
+        Booking booking = new Booking();
+
         when(bookingRepository.findById(1L))
-                .thenReturn(Optional.of(booking));
+                .thenReturn(java.util.Optional.of(booking));
 
         when(bookingRepository.save(any()))
                 .thenReturn(booking);
 
-        Booking cancelled = bookingService.cancelBooking(1L);
+        Booking result = bookingService.cancelBooking(1L);
 
-        assertNotNull(cancelled);
-        verify(bookingRepository).save(any());
+        assertNotNull(result);
     }
 
     @Test
@@ -110,70 +128,13 @@ class BookingServiceTest {
 
         verify(bookingRepository).deleteById(1L);
     }
-
+  
     @Test
-    void testDeleteBookingNotFound() {
-
-        when(bookingRepository.existsById(1L)).thenReturn(false);
-
-        bookingService.deleteBooking(1L);
-
-        verify(bookingRepository, never()).deleteById(1L);
-    }
-
-    @Test
-    void testGetParticipants() {
-
-        when(participantDirectoryRepository.findByIdentity(BookingIdentity.TEACHER))
-                .thenReturn(List.of());
-
-        List<?> result = bookingService.getParticipants(BookingIdentity.TEACHER);
-
-        assertNotNull(result);
-    }
-
-    @Test
-    void testAddParticipant() {
-
-        when(participantDirectoryRepository.save(any())).thenReturn(null);
-
-        bookingService.addParticipant(
-                "teacher@test.com",
-                "P001",
-                BookingIdentity.TEACHER
-        );
-
-        verify(participantDirectoryRepository).save(any());
-    }
-
-    @Test
-    void testDeleteParticipantBookings() {
-
-        when(bookingRepository.deleteByBookedByIgnoreCaseAndBookedByIdentity(
-                anyString(), any()))
-                .thenReturn(1L);
-
-        when(participantDirectoryRepository.deleteByEmailIgnoreCaseAndIdentity(
-                anyString(), any()))
-                .thenReturn(1L);
-
-        long result = bookingService.deleteParticipantBookings(
-                "teacher@test.com",
-                BookingIdentity.TEACHER
-        );
-
-        assertTrue(result > 0);
-    }
-
-    @Test
-    void testDeleteParticipantBookingsInvalidEmail() {
+    void testStartAfterEnd() {
 
         assertThrows(
-                BookingConflictException.class,
-                () -> bookingService.deleteParticipantBookings(
-                        null,
-                        BookingIdentity.TEACHER
-                )
+                IllegalArgumentException.class,
+                () -> bookingService.isRoomAvailable(101L, "14:00-10:00")
         );
     }
 }

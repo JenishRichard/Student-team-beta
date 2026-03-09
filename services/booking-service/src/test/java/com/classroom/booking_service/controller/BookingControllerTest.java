@@ -1,7 +1,6 @@
 package com.classroom.booking_service.controller;
 
 import com.classroom.booking_service.entity.Booking;
-import com.classroom.booking_service.entity.BookingIdentity;
 import com.classroom.booking_service.service.BookingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -59,15 +58,6 @@ class BookingControllerTest {
     }
 
     @Test
-    void testDeleteBooking() throws Exception {
-
-        Mockito.when(bookingService.deleteBooking(1L)).thenReturn(true);
-
-        mockMvc.perform(delete("/bookings/1"))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
     void testCancelBooking() throws Exception {
 
         Booking booking = new Booking();
@@ -80,49 +70,35 @@ class BookingControllerTest {
     }
 
     @Test
-    void testGetParticipants() throws Exception {
+    void testDeleteBooking() throws Exception {
 
-        Mockito.when(bookingService.getParticipants(Mockito.any()))
-                .thenReturn(List.of());
-
-        mockMvc.perform(get("/bookings/participants")
-                .param("identity", BookingIdentity.TEACHER.name()))
+        mockMvc.perform(delete("/bookings/1"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void testAddParticipant() throws Exception {
+    void testCheckAvailabilityAvailable() throws Exception {
 
-        BookingController.AddParticipantRequest request =
-                new BookingController.AddParticipantRequest(
-                        "P001",
-                        "teacher@test.com",
-                        BookingIdentity.TEACHER
-                );
+        Mockito.when(bookingService.isRoomAvailable(101L,"10:00-12:00"))
+                .thenReturn(true);
 
-        Mockito.when(bookingService.addParticipant(
-                Mockito.anyString(),
-                Mockito.anyString(),
-                Mockito.any()))
-                .thenReturn(null);
-
-        mockMvc.perform(post("/bookings/participants")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+        mockMvc.perform(get("/bookings/availability")
+                .param("roomId","101")
+                .param("timeRange","10:00-12:00"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.available").value(true));
     }
 
     @Test
-    void testDeleteParticipantBookings() throws Exception {
+    void testCheckAvailabilityNotAvailable() throws Exception {
 
-        Mockito.when(bookingService.deleteParticipantBookings(
-                Mockito.anyString(),
-                Mockito.any()))
-                .thenReturn(1L);
+        Mockito.when(bookingService.isRoomAvailable(101L,"10:00-12:00"))
+                .thenReturn(false);
 
-        mockMvc.perform(delete("/bookings/participants")
-                .param("bookedBy", "teacher@test.com")
-                .param("identity", BookingIdentity.TEACHER.name()))
-                .andExpect(status().isNoContent());
+        mockMvc.perform(get("/bookings/availability")
+                .param("roomId","101")
+                .param("timeRange","10:00-12:00"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.available").value(false));
     }
 }

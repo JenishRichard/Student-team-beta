@@ -5,17 +5,18 @@ import java.time.LocalDate;
 
 @Entity
 @Table(
-	    name = "bookings",
-	    uniqueConstraints = @UniqueConstraint(
-	            columnNames = {"room_id", "booking_date", "booking_time", "status"}
-	    )
-	)
+    name = "bookings",
+    uniqueConstraints = @UniqueConstraint(
+        columnNames = {"room_id", "booking_date", "booking_time", "status"}
+    )
+)
 public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "room_id")
     private Long roomId;
 
     private String bookedBy;
@@ -24,9 +25,10 @@ public class Booking {
     @Column(nullable = false, length = 16)
     private BookingIdentity bookedByIdentity = BookingIdentity.TEACHER;
 
+    @Column(name = "booking_date")
     private LocalDate bookingDate;
 
-    @Column(nullable = false, length = 20)
+    @Column(name = "booking_time", nullable = false, length = 20)
     private String bookingTime;
 
     @Enumerated(EnumType.STRING)
