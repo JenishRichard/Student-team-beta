@@ -21,6 +21,7 @@ pipeline {
   environment {
     MAVEN_IMAGE = 'maven:3.9.9-eclipse-temurin-21'
     NODE_IMAGE = 'node:20'
+    SONAR_SCANNER_IMAGE = 'sonarsource/sonar-scanner-cli:latest'
     MAVEN_ARGS = '-B -ntp'
     SERVICE_DIRS = 'services/discovery-server services/config-server services/auth-service services/room-service services/booking-service services/api-gateway'
   }
@@ -105,6 +106,20 @@ pipeline {
                     -Dsonar.projectName="$project_key" \
                     -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
               done
+
+              echo "==> SonarQube analysis for UI (student-team-beta-ui)"
+              docker run --rm \
+                -e SONAR_HOST_URL="$SONAR_HOST_URL" \
+                -e SONAR_TOKEN="$SONAR_TOKEN" \
+                -v "$PWD/ui":/usr/src \
+                "$SONAR_SCANNER_IMAGE" \
+                sonar-scanner \
+                  -Dsonar.projectKey=student-team-beta-ui \
+                  -Dsonar.projectName=student-team-beta-ui \
+                  -Dsonar.projectBaseDir=/usr/src \
+                  -Dsonar.sources=src \
+                  -Dsonar.sourceEncoding=UTF-8 \
+                  -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**
             '''
           }
         }
