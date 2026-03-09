@@ -19,7 +19,7 @@ pipeline {
         stage('Build room-service') {
             steps {
                 dir('services/room-service') {
-                    sh 'mvn clean test package'
+                    sh 'mvn clean verify'
                 }
             }
         }
@@ -27,7 +27,7 @@ pipeline {
         stage('Build booking-service') {
             steps {
                 dir('services/booking-service') {
-                    sh 'mvn clean test package'
+                    sh 'mvn clean verify'
                 }
             }
         }
