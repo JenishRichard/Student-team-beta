@@ -201,8 +201,16 @@ pipeline {
           )
         ]) {
           sh '''
-            set -eu
+            set -eux
             mkdir -p .runlogs
+
+            echo "==> Ensuring RDS schemas exist"
+            docker run --rm mysql:8.0 mysql \
+              -h "$RDS_HOST" \
+              -P "$RDS_PORT" \
+              -u"$RDS_DB_USER" \
+              -p"$RDS_DB_PASSWORD" \
+              -e "CREATE DATABASE IF NOT EXISTS auth_db; CREATE DATABASE IF NOT EXISTS room_db; CREATE DATABASE IF NOT EXISTS booking_db;"
 
             start_and_check() {
               svc_dir="$1"
@@ -216,6 +224,7 @@ pipeline {
               docker run -d --name "$container_name" \
                 -e DB_HOST="$RDS_HOST" \
                 -e DB_PORT="$RDS_PORT" \
+                -e AUTH_DB_NAME="auth_db" \
                 -e DB_USER="$RDS_DB_USER" \
                 -e DB_PASSWORD="$RDS_DB_PASSWORD" \
                 -v "$PWD":/workspace \

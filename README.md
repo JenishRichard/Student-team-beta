@@ -143,24 +143,25 @@ GitHub Repository: https://github.com/SanketJr11/Student-team-beta
 
 ## Database Setup for Team Collaboration
 
-To avoid "works on my machine" DB issues, `room-service` and `booking-service` now use:
+To avoid "works on my machine" DB issues, services use:
 
-- Environment-based DB config (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`)
+- Environment-based DB config (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`)
+- Auth schema config (`AUTH_DB_NAME`, default `auth_db`)
 - Flyway SQL migrations (`src/main/resources/db/migration`)
 
 ### Shared DB values (current)
 
 - `DB_HOST=classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com`
 - `DB_PORT=3306`
-- `DB_NAME=student_db`
+- `AUTH_DB_NAME=auth_db`
 - `DB_USER=admin`
 - `DB_PASSWORD=admin123`
 
 ### How to run
 
-1. Ensure RDS schemas exist: `student_db`, `room_db`, `booking_db`.
+1. Ensure RDS schemas exist: `auth_db`, `room_db`, `booking_db`.
 2. Export variables (or configure in IDE run config):
-   `export DB_HOST=classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com DB_PORT=3306 DB_NAME=student_db DB_USER=admin DB_PASSWORD=admin123`
+   `export DB_HOST=classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com DB_PORT=3306 AUTH_DB_NAME=auth_db DB_USER=admin DB_PASSWORD=admin123`
 3. Start services.
 
 Flyway will auto-apply missing migrations on startup, so schema changes committed by one teammate are applied for others after pull.
