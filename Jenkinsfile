@@ -122,7 +122,6 @@ pipeline {
                   -Dsonar.projectBaseDir=/usr/src \
                   -Dsonar.sources=src \
                   -Dsonar.javascript.node.maxspace=4096 \
-                  -Dsonar.scm.provider=git \
                   -Dsonar.sourceEncoding=UTF-8 \
                   -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**
             '''
