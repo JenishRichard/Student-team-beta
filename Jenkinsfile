@@ -40,11 +40,10 @@ pipeline {
     }
 
     post {
-    always {
-        junit testResults: 'services/room-service/target/surefire-reports/*.xml', allowEmptyResults: true
-        archiveArtifacts artifacts: 'services/**/target/*.jar, services/room-service/target/surefire-reports/*.xml', fingerprint: true
-            }
-    }
+        always {
+            junit testResults: 'services/room-service/target/surefire-reports/*.xml', allowEmptyResults: true
+            archiveArtifacts artifacts: 'services/**/target/*.jar, services/room-service/target/surefire-reports/*.xml', fingerprint: true
+        }
 
         success {
             echo 'Pipeline completed successfully.'
