@@ -50,6 +50,7 @@ pipeline {
                     find services -type f -path "*/target/site/jacoco/*" || true
                 '''
             }
+        }
     }
 
     post {
