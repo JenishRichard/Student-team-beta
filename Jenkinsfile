@@ -112,7 +112,7 @@ pipeline {
               ui_sonar_ok=0
               for attempt in 1 2; do
                 echo "UI Sonar attempt ${attempt}/2"
-                if docker run --rm --platform linux/arm64/v8 \
+                if docker run --rm \
                   -e SONAR_HOST_URL="$SONAR_HOST_URL" \
                   -e SONAR_TOKEN="$SONAR_TOKEN" \
                   -e SONAR_SCANNER_JAVA_OPTS="-Xms512m -Xmx2048m" \
