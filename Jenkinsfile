@@ -57,6 +57,15 @@ pipeline {
         always {
             junit testResults: 'services/**/target/surefire-reports/*.xml', allowEmptyResults: true
             archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**', fingerprint: true
+            
+            publishHTML(target: [
+            reportDir: 'services/room-service/target/site/jacoco',
+            reportFiles: 'index.html',
+            reportName: 'JaCoCo Code Coverage',
+            keepAll: true,
+            alwaysLinkToLastBuild: true
+        ])
+
         }
 
         success {
