@@ -51,6 +51,26 @@ pipeline {
                 '''
             }
         }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('LocalSonar') {
+                    sh '''
+                      mvn sonar:sonar \
+                        -Dsonar.projectKey=classroom-maven-app
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
     }
 
     post {
