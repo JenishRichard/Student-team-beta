@@ -19,3 +19,9 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0
     table: flyway_schema_history_room_service
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
