@@ -54,18 +54,20 @@ pipeline {
         stage('SonarQube Analysis (single project)') {
             steps {
                 withSonarQubeEnv('LocalSonar') {
-                // Use the SonarScanner tool configured in Jenkins
-                def scannerHome = tool 'LocalSonarScanner'
-                sh """
-                    ${scannerHome}/bin/sonar-scanner \
-                    -Dsonar.projectKey=classroom-booking \
-                    -Dsonar.projectName=classroom-booking \
-                    -Dsonar.sources=services/room-service/src/main,services/booking-service/src/main \
-                    -Dsonar.tests=services/room-service/src/test,services/booking-service/src/test \
-                    -Dsonar.java.binaries=services/room-service/target/classes,services/booking-service/target/classes \
-                    -Dsonar.junit.reportPaths=services/room-service/target/surefire-reports,services/booking-service/target/surefire-reports \
-                    -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml
-                """
+                    script {
+                        def scannerHome = tool 'LocalSonarScanner'
+                        sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=classroom-booking \
+                            -Dsonar.projectName=classroom-booking \
+                            -Dsonar.sources=services/room-service/src/main,services/booking-service/src/main \
+                            -Dsonar.tests=services/room-service/src/test,services/booking-service/src/test \
+                            -Dsonar.java.binaries=services/room-service/target/classes,services/booking-service/target/classes \
+                            -Dsonar.junit.reportPaths=services/room-service/target/surefire-reports,services/booking-service/target/surefire-reports \
+                            -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml \
+                            -Dsonar.scanner.skipJreProvisioning=true
+                        """
+                    }
                 }
             }
         }
