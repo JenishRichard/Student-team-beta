@@ -9,6 +9,7 @@ import {
   type BookingApi,
   type ParticipantApi,
 } from "../services/booking.service";
+import { getUsers, type UserApi } from "../services/auth.service";
 import { useAuth } from "../store/auth";
 import { isAdminRole } from "../types/roles";
 
@@ -26,6 +27,7 @@ export default function Students() {
 
   const [bookings, setBookings] = useState<BookingApi[]>([]);
   const [studentsDirectory, setStudentsDirectory] = useState<ParticipantApi[]>([]);
+  const [studentUsers, setStudentUsers] = useState<UserApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeletingEmail, setIsDeletingEmail] = useState<string | null>(null);
@@ -45,8 +47,10 @@ export default function Students() {
         getBookings(),
         getParticipants("STUDENT"),
       ]);
+      const users = await getUsers();
       setBookings(bookingData);
       setStudentsDirectory(participants);
+      setStudentUsers(users.filter((user) => user.role === "STUDENT"));
     } catch (e: any) {
       setError(e?.response?.data?.message ?? e?.message ?? "Failed to load students");
     } finally {
@@ -69,10 +73,14 @@ export default function Students() {
       byEmail.set(key, list);
     }
 
-    const allEmails = new Set<string>(studentsDirectory.map((item) => item.email));
+    const allEmails = new Set<string>(studentUsers.map((item) => item.email));
+    for (const email of studentsDirectory.map((item) => item.email)) allEmails.add(email);
     for (const email of byEmail.keys()) allEmails.add(email);
     const participantIdByEmail = new Map(
       studentsDirectory.map((item) => [item.email, item.participantId] as const)
+    );
+    const userIdByEmail = new Map(
+      studentUsers.map((item) => [item.email, item.userId] as const)
     );
 
     return Array.from(allEmails)
@@ -81,14 +89,14 @@ export default function Students() {
         const items = byEmail.get(email) ?? [];
         const activeBookings = items.filter((item) => item.status === "CONFIRMED").length;
         return {
-          id: participantIdByEmail.get(email) ?? `ST-${index + 1}`,
+          id: userIdByEmail.get(email) ?? participantIdByEmail.get(email) ?? `ST-${index + 1}`,
           email,
           totalBookings: items.length,
           activeBookings,
           status: activeBookings > 0 ? "Active" : "None",
         };
       });
-  }, [bookings, studentsDirectory]);
+  }, [bookings, studentsDirectory, studentUsers]);
 
   const onAddStudent = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
