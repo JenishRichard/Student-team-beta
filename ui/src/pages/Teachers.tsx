@@ -9,6 +9,7 @@ import {
   type BookingApi,
   type ParticipantApi,
 } from "../services/booking.service";
+import { getUsers, type UserApi } from "../services/auth.service";
 import { useAuth } from "../store/auth";
 import { isAdminRole } from "../types/roles";
 
@@ -26,6 +27,7 @@ export default function Teachers() {
 
   const [bookings, setBookings] = useState<BookingApi[]>([]);
   const [teachersDirectory, setTeachersDirectory] = useState<ParticipantApi[]>([]);
+  const [teacherUsers, setTeacherUsers] = useState<UserApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeletingEmail, setIsDeletingEmail] = useState<string | null>(null);
@@ -45,8 +47,10 @@ export default function Teachers() {
         getBookings(),
         getParticipants("TEACHER"),
       ]);
+      const users = await getUsers();
       setBookings(bookingData);
       setTeachersDirectory(participants);
+      setTeacherUsers(users.filter((user) => user.role === "TEACHER"));
     } catch (e: any) {
       setError(e?.response?.data?.message ?? e?.message ?? "Failed to load teachers");
     } finally {
@@ -69,10 +73,14 @@ export default function Teachers() {
       byEmail.set(key, list);
     }
 
-    const allEmails = new Set<string>(teachersDirectory.map((item) => item.email));
+    const allEmails = new Set<string>(teacherUsers.map((item) => item.email));
+    for (const email of teachersDirectory.map((item) => item.email)) allEmails.add(email);
     for (const email of byEmail.keys()) allEmails.add(email);
     const participantIdByEmail = new Map(
       teachersDirectory.map((item) => [item.email, item.participantId] as const)
+    );
+    const userIdByEmail = new Map(
+      teacherUsers.map((item) => [item.email, item.userId] as const)
     );
 
     return Array.from(allEmails)
@@ -81,14 +89,14 @@ export default function Teachers() {
         const items = byEmail.get(email) ?? [];
         const activeBookings = items.filter((item) => item.status === "CONFIRMED").length;
         return {
-          id: participantIdByEmail.get(email) ?? `TC-${index + 1}`,
+          id: userIdByEmail.get(email) ?? participantIdByEmail.get(email) ?? `TC-${index + 1}`,
           email,
           totalBookings: items.length,
           activeBookings,
           status: activeBookings > 0 ? "Active" : "None",
         };
       });
-  }, [bookings, teachersDirectory]);
+  }, [bookings, teachersDirectory, teacherUsers]);
 
   const onAddTeacher = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

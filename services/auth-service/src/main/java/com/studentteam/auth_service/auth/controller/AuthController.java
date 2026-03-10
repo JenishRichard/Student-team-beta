@@ -5,6 +5,7 @@ import com.studentteam.auth_service.auth.jwt.JwtService;
 import com.studentteam.auth_service.auth.service.AuthService;
 import io.jsonwebtoken.Claims;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +25,7 @@ public class AuthController {
 
   @PostMapping("/register")
   public ResponseEntity<AuthDtos.UserResponse> register(@Valid @RequestBody AuthDtos.RegisterRequest req) {
-    return ResponseEntity.ok(authService.createUser(req));
+    return ResponseEntity.status(HttpStatus.CREATED).body(authService.createUser(req));
   }
 
   @PostMapping("/login")

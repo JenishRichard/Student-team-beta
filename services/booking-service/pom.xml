@@ -78,33 +78,31 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-
-			<!-- JaCoCo Plugin for Code Coverage -->
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>${jacoco.version}</version>
+				<!-- JaCoCo Plugin for Code Coverage -->
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>${jacoco.version}</version>
 
 				<executions>
 
-					<!-- Attach JaCoCo agent -->
-					<execution>
-						<id>prepare-agent</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
+						<!-- Attach JaCoCo agent -->
+						<execution>
+							<id>prepare-agent</id>
+							<goals>
+								<goal>prepare-agent</goal>
+							</goals>
+						</execution>
+						<!-- Generate coverage report -->
+						<execution>
+							<id>report</id>
+							<phase>test</phase>
+							<goals>
+								<goal>report</goal>
+							</goals>
+						</execution>
 
-					<!-- Generate coverage report -->
-					<execution>
-						<id>report</id>
-						<phase>test</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-
-				</executions>
+					</executions>
 
 				<configuration>
 					<excludes>
@@ -125,11 +123,16 @@
 						<exclude>**/exception/**</exclude>
 
 					</excludes>
-				</configuration>
+					</configuration>
 
-			</plugin>
-
-		</plugins>
-	</build>
+				</plugin>
+				<plugin>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<configuration>
+						<argLine>@{argLine} -XX:+EnableDynamicAgentLoading</argLine>
+					</configuration>
+				</plugin>
+			</plugins>
+		</build>
 
 </project>
