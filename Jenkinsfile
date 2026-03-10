@@ -57,10 +57,11 @@ pipeline {
                 dir('services/room-service') {
                 withSonarQubeEnv('LocalSonar') {
                     sh '''
-                          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
-                            -Dsonar.projectKey=room-service \
-                            -Dsonar.projectName=room-service \
-                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
+                    -Dsonar.projectKey=room-service \
+                    -Dsonar.projectName=room-service \
+                    -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                    -Dsonar.scanner.skipJreProvisioning=true
                         '''
                 }
                 }
