@@ -4,11 +4,11 @@ pipeline {
     environment {
         GITHUB_TOKEN = credentials('github-token')
 
-        // ✅ Update these ports to whatever your services actually use
+       
         ROOM_PORT = '8081'
-        BOOKING_PORT = '8082'
+        BOOKING_PORT = '8083'
 
-        // ✅ Update this if you don’t have actuator
+        
         HEALTH_PATH = '/actuator/health'
     }
 
@@ -112,7 +112,7 @@ pipeline {
                     BOOKING_OK=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${BOOKING_PORT}${HEALTH_PATH}" || true)
 
                     if [ "$ROOM_OK" = "200" ] && [ "$BOOKING_OK" = "200" ]; then
-                      echo "Both services are UP ✅"
+                      echo "Both services are UP"
                       exit 0
                     fi
 
@@ -120,7 +120,7 @@ pipeline {
                     sleep 2
                   done
 
-                  echo "Services did not start in time ❌"
+                  echo "Services did not start in time"
                   echo "---- room-service.log ----"
                   tail -n 200 room-service.log || true
                   echo "---- booking-service.log ----"
@@ -139,7 +139,7 @@ pipeline {
             // archive artifacts including jacoco html/xml
             archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, *.log', fingerprint: true
 
-            // ✅ Publish JaCoCo HTML for room-service
+            // Publish JaCoCo HTML for room-service
             publishHTML(target: [
                 reportDir: 'services/room-service/target/site/jacoco',
                 reportFiles: 'index.html',
@@ -148,7 +148,7 @@ pipeline {
                 alwaysLinkToLastBuild: true
             ])
 
-            // ✅ Publish JaCoCo HTML for booking-service
+            // Publish JaCoCo HTML for booking-service
             publishHTML(target: [
                 reportDir: 'services/booking-service/target/site/jacoco',
                 reportFiles: 'index.html',
