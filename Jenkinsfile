@@ -1,289 +1,97 @@
 pipeline {
-  agent any
+    agent any
 
-  options {
-    timestamps()
-    disableConcurrentBuilds()
-  }
+    environment {
+        GITHUB_TOKEN = credentials('github-token')
 
-  parameters {
-    booleanParam(name: 'BUILD_UI', defaultValue: true, description: 'Run UI install/build stages')
-    booleanParam(name: 'BUILD_DOCKER', defaultValue: true, description: 'Build Docker images using docker compose')
-    booleanParam(name: 'RUN_SONARQUBE', defaultValue: false, description: 'Run SonarQube analysis for backend services')
-    string(name: 'SONARQUBE_SERVER', defaultValue: 'SonarQube', description: 'Configured SonarQube server name in Jenkins')
-    string(name: 'SONAR_TOKEN_CREDENTIALS_ID', defaultValue: 'sonarqube-token', description: 'Jenkins Secret Text credentials ID for SonarQube token')
-    booleanParam(name: 'RUN_RDS_INTEGRATION', defaultValue: false, description: 'Run optional RDS-backed startup checks for DB services')
-    string(name: 'RDS_HOST', defaultValue: 'classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com', description: 'RDS hostname used only in optional integration stage')
-    string(name: 'RDS_PORT', defaultValue: '3306', description: 'RDS port used only in optional integration stage')
-    string(name: 'RDS_CREDENTIALS_ID', defaultValue: 'classroom-rds-admin', description: 'Jenkins Username/Password credentials ID for RDS')
-  }
+        // Single Sonar project for whole repo
+        SONAR_PROJECT_KEY = 'classroom-booking'
+        SONAR_PROJECT_NAME = 'classroom-booking'
+    }
 
-  environment {
-    MAVEN_IMAGE = 'maven:3.9.9-eclipse-temurin-21'
-    NODE_IMAGE = 'node:20'
-    SONAR_SCANNER_IMAGE = 'sonarsource/sonar-scanner-cli:latest'
-    MAVEN_ARGS = '-B -ntp'
-    SERVICE_DIRS = 'services/discovery-server services/config-server services/auth-service services/room-service services/booking-service services/api-gateway'
-  }
+    options { timestamps() }
 
-  stages {
-    stage('Branch Guard') {
-      steps {
-        script {
-          if ((env.BRANCH_NAME ?: '') && env.BRANCH_NAME != 'development') {
-            currentBuild.result = 'NOT_BUILT'
-            error("This pipeline is restricted to 'development'. Current branch: ${env.BRANCH_NAME}")
-          }
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
         }
-      }
-    }
 
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
-    }
-
-    stage('Validate Toolchain') {
-      steps {
-        sh '''
-          set -eux
-          docker --version
-          docker run --rm "$MAVEN_IMAGE" java -version
-          docker run --rm -v "$PWD":/workspace -v "$HOME/.m2":/root/.m2 -w /workspace "$MAVEN_IMAGE" mvn -version
-          if [ "${BUILD_UI}" = "true" ]; then
-            docker run --rm "$NODE_IMAGE" node -v
-            docker run --rm "$NODE_IMAGE" npm -v
-          fi
-        '''
-      }
-    }
-
-    stage('Build & Test Backend Services') {
-      steps {
-        sh '''
-          set -eux
-          for svc in $SERVICE_DIRS; do
-            echo "==> Testing $svc"
-            docker run --rm -v "$PWD":/workspace -v "$HOME/.m2":/root/.m2 -w /workspace "$MAVEN_IMAGE" \
-              mvn $MAVEN_ARGS -f "$svc/pom.xml" clean test
-          done
-        '''
-      }
-    }
-
-    stage('Package Backend Artifacts') {
-      steps {
-        sh '''
-          set -eux
-          for svc in $SERVICE_DIRS; do
-            echo "==> Packaging $svc"
-            docker run --rm -v "$PWD":/workspace -v "$HOME/.m2":/root/.m2 -w /workspace "$MAVEN_IMAGE" \
-              mvn $MAVEN_ARGS -f "$svc/pom.xml" -DskipTests package
-          done
-        '''
-      }
-    }
-
-    stage('SonarQube Analysis (Optional)') {
-      when {
-        expression { return params.RUN_SONARQUBE }
-      }
-      steps {
-        withSonarQubeEnv("${params.SONARQUBE_SERVER}") {
-          withCredentials([string(credentialsId: params.SONAR_TOKEN_CREDENTIALS_ID, variable: 'SONAR_TOKEN')]) {
-            sh '''
-              set -eux
-              sonar_reachable=1
-              if ! docker run --rm "$NODE_IMAGE" sh -lc 'node -e '"'"'const net=require("net"); const s=net.createConnection({host:"host.docker.internal",port:9000}); s.setTimeout(3000); const fail=()=>process.exit(1); s.on("connect",()=>{s.end();process.exit(0)}); s.on("timeout",fail); s.on("error",fail);'"'"''; then
-                sonar_reachable=0
-                echo "WARN: SonarQube host is unreachable from Docker; skipping SonarQube stage."
-              fi
-              if [ "$sonar_reachable" -eq 1 ]; then
-              for svc in $SERVICE_DIRS; do
-                service_name="${svc##*/}"
-                project_key="student-team-beta-${service_name}"
-                echo "==> SonarQube analysis for ${svc} (${project_key})"
-                docker run --rm -v "$PWD":/workspace -v "$HOME/.m2":/root/.m2 -w /workspace "$MAVEN_IMAGE" \
-                  mvn $MAVEN_ARGS -f "$svc/pom.xml" -DskipTests sonar:sonar \
-                    -Dsonar.host.url="$SONAR_HOST_URL" \
-                    -Dsonar.token="$SONAR_TOKEN" \
-                    -Dsonar.projectKey="$project_key" \
-                    -Dsonar.projectName="$project_key" \
-                    -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml || {
-                      echo "WARN: SonarQube scan failed for ${svc}; continuing because Sonar stage is optional."
-                    }
-              done
-
-              echo "==> SonarQube analysis for UI (student-team-beta-ui)"
-              mkdir -p "$PWD/.sonar-ui-cache"
-              ui_sonar_ok=0
-              if docker run --rm "$NODE_IMAGE" sh -lc 'node -e '"'"'const net=require("net"); const s=net.createConnection({host:"host.docker.internal",port:9000}); s.setTimeout(3000); const fail=()=>process.exit(1); s.on("connect",()=>{s.end();process.exit(0)}); s.on("timeout",fail); s.on("error",fail);'"'"''; then
-                for attempt in 1 2; do
-                  echo "UI Sonar attempt ${attempt}/2"
-                  if docker run --rm \
-                    -e SONAR_HOST_URL="$SONAR_HOST_URL" \
-                    -e SONAR_TOKEN="$SONAR_TOKEN" \
-                    -e SONAR_SCANNER_JAVA_OPTS="-Xms512m -Xmx2048m" \
-                    -e SONAR_SCANNER_OPTS="-Xms512m -Xmx2048m" \
-                    -e NODE_OPTIONS="--max-old-space-size=4096" \
-                    -e SONAR_USER_HOME="/tmp/.sonar" \
-                    -v "$PWD/ui":/usr/src \
-                    -v "$PWD/.sonar-ui-cache":/tmp/.sonar \
-                    "$SONAR_SCANNER_IMAGE" \
-                    sonar-scanner \
-                      -Dsonar.projectKey=student-team-beta-ui \
-                      -Dsonar.projectName=student-team-beta-ui \
-                      -Dsonar.projectBaseDir=/usr/src \
-                      -Dsonar.sources=src \
-                      -Dsonar.javascript.node.maxspace=4096 \
-                      -Dsonar.sourceEncoding=UTF-8 \
-                      -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**; then
-                    ui_sonar_ok=1
-                    break
-                  fi
-                  sleep 5
-                done
-              else
-                echo "WARN: SonarQube host is unreachable from Docker; skipping UI SonarQube scan."
-                ui_sonar_ok=1
-              fi
-              if [ "$ui_sonar_ok" -ne 1 ]; then
-                echo "WARN: UI SonarQube scan failed after retries; continuing because Sonar stage is optional."
-              fi
-              fi
-            '''
-          }
-        }
-      }
-    }
-
-    stage('Build UI') {
-      when {
-        expression { return params.BUILD_UI }
-      }
-      steps {
-        sh '''
-          set -eux
-          docker run --rm -v "$PWD/ui":/workspace -w /workspace "$NODE_IMAGE" sh -lc '
-            node -v
-            npm -v
-            npm ci
-            npm run build
-          '
-        '''
-      }
-    }
-
-    stage('Build Docker Images') {
-      when {
-        expression { return params.BUILD_DOCKER }
-      }
-      agent any
-      steps {
-        sh '''
-          set -eux
-          docker compose build
-        '''
-      }
-    }
-
-    stage('RDS Integration (Optional)') {
-      when {
-        expression { return params.RUN_RDS_INTEGRATION }
-      }
-      steps {
-        withCredentials([
-          usernamePassword(
-            credentialsId: params.RDS_CREDENTIALS_ID,
-            usernameVariable: 'RDS_DB_USER',
-            passwordVariable: 'RDS_DB_PASSWORD'
-          )
-        ]) {
-          sh '''
-            set -eux
-            mkdir -p .runlogs
-
-            echo "==> Ensuring RDS schemas exist"
-            docker run --rm mysql:8.0 mysql \
-              -h "$RDS_HOST" \
-              -P "$RDS_PORT" \
-              -u"$RDS_DB_USER" \
-              -p"$RDS_DB_PASSWORD" \
-              -e "CREATE DATABASE IF NOT EXISTS auth_db; CREATE DATABASE IF NOT EXISTS room_db; CREATE DATABASE IF NOT EXISTS booking_db;"
-
-            start_and_check() {
-              svc_dir="$1"
-              app_name="$2"
-              port="$3"
-              service_name="${svc_dir##*/}"
-              container_name="ci-rds-${service_name}"
-
-              echo "==> Starting ${svc_dir} on port ${port} with RDS (${RDS_HOST}:${RDS_PORT})"
-              docker rm -f "$container_name" >/dev/null 2>&1 || true
-              docker run -d --name "$container_name" \
-                -e DB_HOST="$RDS_HOST" \
-                -e DB_PORT="$RDS_PORT" \
-                -e AUTH_DB_NAME="auth_db" \
-                -e DB_USER="$RDS_DB_USER" \
-                -e DB_PASSWORD="$RDS_DB_PASSWORD" \
-                -v "$PWD":/workspace \
-                -v "$HOME/.m2":/root/.m2 \
-                -w /workspace \
-                "$MAVEN_IMAGE" \
-                mvn $MAVEN_ARGS -f "${svc_dir}/pom.xml" \
-                spring-boot:run -Dspring-boot.run.arguments="--server.port=${port}" >/dev/null
-
-              started=0
-
-              for _ in $(seq 1 60); do
-                if docker logs "$container_name" 2>&1 | grep -q "Started ${app_name}"; then
-                  started=1
-                  break
-                fi
-                if ! docker ps --format '{{.Names}}' | grep -q "^${container_name}$"; then
-                  echo "${svc_dir} exited before startup. Last logs:"
-                  docker logs --tail 120 "$container_name" || true
-                  exit 1
-                fi
-                sleep 2
-              done
-
-              if [ "$started" -ne 1 ]; then
-                echo "Timed out waiting for ${svc_dir} startup. Last logs:"
-                docker logs --tail 120 "$container_name" || true
-                docker rm -f "$container_name" >/dev/null 2>&1 || true
-                exit 1
-              fi
-
-              echo "${svc_dir} started successfully with RDS."
-              docker rm -f "$container_name" >/dev/null 2>&1 || true
+        // Single Build stage (build both services)
+        stage('Build & Test (room + booking)') {
+            steps {
+                sh '''
+                  set -e
+                  mvn -f services/room-service/pom.xml clean verify
+                  mvn -f services/booking-service/pom.xml clean verify
+                '''
             }
-
-            start_and_check "services/auth-service" "AuthServiceApplication" "18084"
-            start_and_check "services/room-service" "RoomServiceApplication" "18081"
-            start_and_check "services/booking-service" "BookingServiceApplication" "18083"
-          '''
         }
-      }
+
+        stage('Check reports') {
+            steps {
+                sh '''
+                    echo "Surefire reports:"
+                    find services -type f -path "*/target/surefire-reports/*.xml" || true
+
+                    echo "JaCoCo XML:"
+                    find services -type f -path "*/target/site/jacoco/jacoco.xml" || true
+
+                    echo "JaCoCo HTML:"
+                    find services -type f -path "*/target/site/jacoco/index.html" || true
+                '''
+            }
+        }
+
+        // Single SonarQube analysis for both services into ONE Sonar project
+        stage('SonarQube Analysis (single project)') {
+            steps {
+                withSonarQubeEnv('LocalSonar') {
+                    script {
+                        def scannerHome = tool 'LocalSonarScanner'
+                        sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=classroom-booking \
+                            -Dsonar.projectName=classroom-booking \
+                            -Dsonar.sources=services/room-service/src/main,services/booking-service/src/main \
+                            -Dsonar.tests=services/room-service/src/test,services/booking-service/src/test \
+                            -Dsonar.java.binaries=services/room-service/target/classes,services/booking-service/target/classes \
+                            -Dsonar.junit.reportPaths=services/room-service/target/surefire-reports,services/booking-service/target/surefire-reports \
+                            -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml \
+                            -Dsonar.scanner.skipJreProvisioning=true
+                        """
+                    }
+                }
+            }
+        }
+
     }
 
-    stage('Archive Artifacts') {
-      steps {
-        archiveArtifacts artifacts: 'services/**/target/*.jar,ui/dist/**', fingerprint: true, allowEmptyArchive: true
-      }
-    }
-  }
+    post {
+        always {
+            junit testResults: 'services/**/target/surefire-reports/*.xml', allowEmptyResults: true
 
-  post {
-    always {
-      junit testResults: 'services/**/target/surefire-reports/*.xml', allowEmptyResults: true
+            archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, *.log', fingerprint: true
+
+            publishHTML(target: [
+                reportDir: 'services/room-service/target/site/jacoco',
+                reportFiles: 'index.html',
+                reportName: 'JaCoCo - room-service',
+                keepAll: true,
+                alwaysLinkToLastBuild: true
+            ])
+
+            publishHTML(target: [
+                reportDir: 'services/booking-service/target/site/jacoco',
+                reportFiles: 'index.html',
+                reportName: 'JaCoCo - booking-service',
+                keepAll: true,
+                alwaysLinkToLastBuild: true
+            ])
+
+       
+        }
+
+        success { echo 'Pipeline completed successfully.' }
+        failure { echo 'Pipeline failed.' }
     }
-    success {
-      echo 'Pipeline completed successfully.'
-    }
-    failure {
-      echo 'Pipeline failed.'
-    }
-  }
 }
