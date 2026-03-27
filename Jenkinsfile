@@ -64,6 +64,16 @@ pipeline {
             }
         }
 
+        stage('Test Email') {
+            steps {
+                emailext(
+                    subject: "Test Email from Jenkins",
+                    body: "This is a test email from Jenkins pipeline.",
+                    to: "sanket.shetty9423@gmail.com"
+                        )
+            }
+        }
+
     }
 
     post {
