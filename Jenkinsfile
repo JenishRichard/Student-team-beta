@@ -7,6 +7,7 @@ pipeline {
         // Single Sonar project for whole repo
         SONAR_PROJECT_KEY = 'classroom-booking'
         SONAR_PROJECT_NAME = 'classroom-booking'
+        EMAIL_RECIPIENTS = 'sanket.shetty9423@gmail.com'
     }
 
     options { timestamps() }
@@ -64,16 +65,6 @@ pipeline {
             }
         }
 
-        stage('Test Email') {
-            steps {
-                emailext(
-                    subject: "Test Email from Jenkins",
-                    body: "This is a test email from Jenkins pipeline - 1",
-                    to: "sanket.shetty9423@gmail.com"
-                        )
-            }
-        }
-
     }
 
     post {
@@ -101,7 +92,36 @@ pipeline {
        
         }
 
-        success { echo 'Pipeline completed successfully.' }
-        failure { echo 'Pipeline failed.' }
+        success {
+                echo 'Pipeline completed successfully.'
+        }
+
+        unstable {
+            emailext(
+            subject: "UNSTABLE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            body: """Build is UNSTABLE
+
+            Job: ${env.JOB_NAME}
+            Build Number: ${env.BUILD_NUMBER}
+            Check console output: ${env.BUILD_URL}
+            """,
+            to: ${env.EMAIL_RECIPIENTS}
+            )
+        }
+
+        failure {
+            echo 'Pipeline failed.'
+            
+            emailext(
+                subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """Build FAILED
+
+                Job: ${env.JOB_NAME}
+                Build Number: ${env.BUILD_NUMBER}
+                Check console output: ${env.BUILD_URL}
+                """,
+                to: ${env.EMAIL_RECIPIENTS}
+            )
+        }
     }
 }
