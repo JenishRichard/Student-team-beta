@@ -126,7 +126,7 @@ GitHub webhook triggers Jenkins pipeline:
 3. Checkstyle / static checks
 4. SonarQube scan + Quality Gate
 5. Package artifacts (JAR)
-6. Store artifacts in Nexus (planned)
+6. Jenkins pipeline is triggered automatically using a GitHub webhook (ngork)
 7. Build Docker images
 8. Deploy to **Development** (auto)
 9. Deploy to **main** (Manual)
