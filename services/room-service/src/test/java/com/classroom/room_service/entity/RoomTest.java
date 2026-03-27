@@ -17,7 +17,7 @@ class RoomTest {
         room.setId(1L);
         room.setRoomNumber("A101");
         room.setBuilding("Main Block");
-        room.setCapacity(40);
+        room.setCapacity(A);
         room.setType("LECTURE");
         room.setAvailable(false);
 

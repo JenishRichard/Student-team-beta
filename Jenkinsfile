@@ -105,13 +105,13 @@ pipeline {
             Build Number: ${env.BUILD_NUMBER}
             Check console output: ${env.BUILD_URL}
             """,
-            to: ${env.EMAIL_RECIPIENTS}
+            to: "${env.EMAIL_RECIPIENTS}"
             )
         }
 
         failure {
             echo 'Pipeline failed.'
-            
+
             emailext(
                 subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """Build FAILED
@@ -120,7 +120,7 @@ pipeline {
                 Build Number: ${env.BUILD_NUMBER}
                 Check console output: ${env.BUILD_URL}
                 """,
-                to: ${env.EMAIL_RECIPIENTS}
+                to: "${env.EMAIL_RECIPIENTS}"
             )
         }
     }
