@@ -1,6 +1,5 @@
 server:
-  port: 8082
+  port: 8081
 
-spring:
-  application:
-    name: booking-service
+custom:
+  message: "Config Server - Booking Service"
