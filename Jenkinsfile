@@ -8,6 +8,11 @@ pipeline {
         SONAR_PROJECT_KEY = 'classroom-booking'
         SONAR_PROJECT_NAME = 'classroom-booking'
         EMAIL_RECIPIENTS = 'sanket.shetty9423@gmail.com'
+        DB_USER = credentials('rds-db-user')
+        DB_PASSWORD = credentials('rds-db-password')
+
+        DOCKER_REPO_ROOM = 'sanketshetty23/room-service'
+        DOCKER_REPO_BOOKING = 'sanketshetty23/booking-service'
     }
 
     options { timestamps() }
