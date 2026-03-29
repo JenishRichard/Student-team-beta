@@ -70,6 +70,33 @@ pipeline {
             }
         }
 
+        stage('Docker Build') {
+            steps {
+                sh """
+                docker build -t ${DOCKER_REPO_ROOM}:${BUILD_NUMBER} -t ${DOCKER_REPO_ROOM}:latest services/room-service
+                docker build -t ${DOCKER_REPO_BOOKING}:${BUILD_NUMBER} -t ${DOCKER_REPO_BOOKING}:latest services/booking-service
+                """
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    docker push ${DOCKER_REPO_ROOM}:${BUILD_NUMBER}
+                    docker push ${DOCKER_REPO_ROOM}:latest
+                    docker push ${DOCKER_REPO_BOOKING}:${BUILD_NUMBER}
+                    docker push ${DOCKER_REPO_BOOKING}:latest
+                    '''
+                }
+            }
+        }
+
     }
 
     post {
