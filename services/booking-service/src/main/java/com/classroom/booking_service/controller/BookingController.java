@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@RefreshScope   //ADD (for dynamic refresh)
 @RestController
 @RequestMapping("/bookings")
 public class BookingController {
@@ -19,7 +18,7 @@ public class BookingController {
     private final BookingService service;
 
     //ADD (inject value from config server)
-    @Value("${custom.message}")
+    @Value("${custom.message:Default Message}")
     private String message;
 
     public BookingController(BookingService service) {

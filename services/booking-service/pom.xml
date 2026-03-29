@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
- https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Parent -->
+    <!-- Spring Boot Parent (COMPATIBLE VERSION) -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.11</version>
+        <version>3.4.5</version>
         <relativePath/>
     </parent>
+
     <!-- Project Info -->
     <groupId>com.classroom</groupId>
     <artifactId>booking-service</artifactId>
@@ -25,7 +26,7 @@
         <jacoco.version>0.8.11</jacoco.version>
     </properties>
 
-    <!-- 🔥 ADD THIS (VERY IMPORTANT) -->
+    <!-- ✅ Spring Cloud Compatibility -->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -71,10 +72,16 @@
             <artifactId>flyway-mysql</artifactId>
         </dependency>
 
-        <!-- 🔥 ADD THIS (CONFIG CLIENT) -->
+        <!-- ✅ Config Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+
+        <!-- (Optional but recommended for config refresh) -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
 
         <!-- Actuator -->
@@ -102,6 +109,7 @@
     <build>
         <plugins>
 
+            <!-- Spring Boot Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -139,9 +147,9 @@
                         <exclude>**/exception/**</exclude>
                     </excludes>
                 </configuration>
-
             </plugin>
 
+            <!-- Surefire -->
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
