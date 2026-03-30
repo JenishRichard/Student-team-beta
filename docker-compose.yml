@@ -1,15 +1,24 @@
-services:
-  mysql:
-    image: mysql:8.0
-    container_name: classroom-mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3308:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./mysql-init:/docker-entrypoint-initdb.d
+version: '3.8'
 
-volumes:
-  mysql_data:
+services:
+  room-service:
+    image: sanketshetty23/room-service:latest
+    container_name: room-service
+    ports:
+      - "8081:8081"
+    environment:
+      DB_HOST: classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com
+      DB_PORT: 3306
+      DB_USER: admin
+      DB_PASSWORD: admin123
+
+  booking-service:
+    image: sanketshetty23/booking-service:latest
+    container_name: booking-service
+    ports:
+      - "8083:8083"
+    environment:
+      DB_HOST: classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com
+      DB_PORT: 3306
+      DB_USER: admin
+      DB_PASSWORD: admin123

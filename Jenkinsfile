@@ -8,6 +8,11 @@ pipeline {
         SONAR_PROJECT_KEY = 'classroom-booking'
         SONAR_PROJECT_NAME = 'classroom-booking'
         EMAIL_RECIPIENTS = 'sanket.shetty9423@gmail.com'
+        DB_USER = credentials('rds-db-user')
+        DB_PASSWORD = credentials('rds-db-password')
+
+        DOCKER_REPO_ROOM = 'sanketshetty23/room-service'
+        DOCKER_REPO_BOOKING = 'sanketshetty23/booking-service'
     }
 
     options { timestamps() }
@@ -61,6 +66,33 @@ pipeline {
                             -Dsonar.scanner.skipJreProvisioning=true
                         """
                     }
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh """
+                docker build -t ${DOCKER_REPO_ROOM}:${BUILD_NUMBER} -t ${DOCKER_REPO_ROOM}:latest services/room-service
+                docker build -t ${DOCKER_REPO_BOOKING}:${BUILD_NUMBER} -t ${DOCKER_REPO_BOOKING}:latest services/booking-service
+                """
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    docker push ${DOCKER_REPO_ROOM}:${BUILD_NUMBER}
+                    docker push ${DOCKER_REPO_ROOM}:latest
+                    docker push ${DOCKER_REPO_BOOKING}:${BUILD_NUMBER}
+                    docker push ${DOCKER_REPO_BOOKING}:latest
+                    '''
                 }
             }
         }
