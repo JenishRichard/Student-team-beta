@@ -4,16 +4,10 @@ server:
 spring:
   application:
     name: config-server
-
   profiles:
-    active: native   
-
+    active: native
   cloud:
     config:
       server:
         native:
-               search-locations: file:D:/Microservcies%20and%20CICD/Project%20Code/Student-team-beta/services/config-server/config-repo
-  endpoints:
-    web:
-      exposure:
-        include: "*"
+          search-locations: file:./config-repo

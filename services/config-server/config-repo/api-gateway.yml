@@ -1,5 +1,6 @@
 server:
   port: 8080
 
-custom:
-  message: "Config Server - API Gateway"
+spring:
+  application:
+    name: api-gateway

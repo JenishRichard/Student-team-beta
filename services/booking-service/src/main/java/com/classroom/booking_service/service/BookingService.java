@@ -6,13 +6,12 @@ import com.classroom.booking_service.entity.TimeRange;
 import com.classroom.booking_service.exception.BookingConflictException;
 import com.classroom.booking_service.repository.BookingRepository;
 
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-@RefreshScope
+
 @Service
 public class BookingService {
 

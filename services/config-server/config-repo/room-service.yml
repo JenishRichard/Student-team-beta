@@ -1,5 +1,6 @@
 server:
-  port: 8082
+  port: 8081
 
-custom:
-  message: "Config Server - Room Service"
+spring:
+  application:
+    name: room-service

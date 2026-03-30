@@ -2,12 +2,6 @@ server:
   port: ${SERVER_PORT:8083}
 
 spring:
-  application:
-    name: booking-service   
-
-  config:
-    import: "optional:configserver:http://localhost:8888"   
-
   datasource:
     url: jdbc:mysql://${DB_HOST:classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com}:${DB_PORT:3306}/booking_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${DB_USER:admin}
@@ -30,4 +24,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,info
