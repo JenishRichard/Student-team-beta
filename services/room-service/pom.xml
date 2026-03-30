@@ -6,11 +6,11 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Parent -->
+    <!-- ✅ Spring Boot  -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.10</version>
+        <version>3.4.5</version>
         <relativePath/>
     </parent>
 
@@ -26,7 +26,7 @@
         <java.version>17</java.version>
     </properties>
 
-    <!-- 🔥 IMPORTANT: Spring Cloud Version Fix -->
+    <!-- ✅ Spring Cloud Compatibility -->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -72,13 +72,19 @@
             <artifactId>flyway-mysql</artifactId>
         </dependency>
 
-        <!-- Config Client -->
+        <!-- ✅ Config Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
 
-        <!-- Actuator -->
+        <!-- ✅ REQUIRED for @RefreshScope -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter</artifactId>
+        </dependency>
+
+        <!-- Actuator (needed for refresh endpoint) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
