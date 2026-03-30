@@ -3,6 +3,7 @@ package com.studentteam.auth_service.auth.service;
 import com.studentteam.auth_service.auth.dto.AuthDtos;
 import com.studentteam.auth_service.auth.entity.UserAccount;
 import com.studentteam.auth_service.auth.entity.UserStatus;
+import com.studentteam.auth_service.auth.exception.InvalidCredentialsException;
 import com.studentteam.auth_service.auth.jwt.JwtService;
 import com.studentteam.auth_service.auth.repository.UserAccountRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -107,10 +108,10 @@ public class AuthService {
 
   public AuthDtos.AuthResponse login(AuthDtos.LoginRequest req) {
     UserAccount user = repository.findByEmailIgnoreCase(req.email())
-        .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+        .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
 
     if (!encoder.matches(req.password(), user.getPasswordHash())) {
-      throw new IllegalArgumentException("Invalid credentials");
+      throw new InvalidCredentialsException("Invalid credentials");
     }
 
     String token = jwtService.generateAccessToken(user.getEmail(), List.of(user.getRole()));
