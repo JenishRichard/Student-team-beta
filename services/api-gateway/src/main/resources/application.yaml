@@ -3,22 +3,23 @@ server:
 
 spring:
   application:
-    name: api-gateway
+    name: api-gateway   
+
+  config:
+    import: "optional:configserver:http://localhost:8888"   
 
   cloud:
-    config:
-      enabled: false
     gateway:
       server:
         webmvc:
           routes:
             - id: room-service
-              uri: http://localhost:8081
+              uri: http://localhost:8082   
               predicates:
                 - Path=/rooms, /rooms/**
 
             - id: booking-service
-              uri: http://localhost:8083
+              uri: http://localhost:8081   
               predicates:
                 - Path=/bookings, /bookings/**
 
@@ -26,6 +27,12 @@ spring:
               uri: http://localhost:8084
               predicates:
                 - Path=/auth, /auth/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
 
 jwt:
   secret: "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS_123456"
