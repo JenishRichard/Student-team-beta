@@ -125,26 +125,23 @@ pipeline {
                     keepAll: true,
                     alwaysLinkToLastBuild: true
                 ])
-                }
             }
-
-       
         }
 
         success {
-                echo 'Pipeline completed successfully.'
+            echo 'Pipeline completed successfully.'
         }
 
         unstable {
             emailext(
-            subject: "UNSTABLE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            body: """Build is UNSTABLE
+                subject: "UNSTABLE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """Build is UNSTABLE
 
-            Job: ${env.JOB_NAME}
-            Build Number: ${env.BUILD_NUMBER}
-            Check console output: ${env.BUILD_URL}
-            """,
-            to: "${env.EMAIL_RECIPIENTS}"
+                Job: ${env.JOB_NAME}
+                Build Number: ${env.BUILD_NUMBER}
+                Check console output: ${env.BUILD_URL}
+                """,
+                to: "${env.EMAIL_RECIPIENTS}"
             )
         }
 
