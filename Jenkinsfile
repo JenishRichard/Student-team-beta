@@ -4,10 +4,8 @@ pipeline {
     environment {
         GITHUB_TOKEN = credentials('github-token')
 
-        // Single Sonar project for whole repo
-        SONAR_PROJECT_KEY = 'classroom-booking'
-        SONAR_PROJECT_NAME = 'classroom-booking'
         EMAIL_RECIPIENTS = 'sanket.shetty9423@gmail.com'
+
         DB_USER = credentials('rds-db-user')
         DB_PASSWORD = credentials('rds-db-password')
 
@@ -23,11 +21,19 @@ pipeline {
         }
 
         // Single Build stage (build both services)
-        stage('Build & Test (room + booking)') {
+        stage('Build & Test room service') {
             steps {
                 sh '''
                   set -e
                   mvn -f services/room-service/pom.xml clean verify
+                '''
+            }
+        }
+
+        stage('Build & Test booking service') {
+            steps {
+                sh '''
+                  set -e
                   mvn -f services/booking-service/pom.xml clean verify
                 '''
             }
@@ -49,23 +55,30 @@ pipeline {
         }
 
         // Single SonarQube analysis for both services into ONE Sonar project
-        stage('SonarQube Analysis (single project)') {
+        stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('LocalSonar') {
-                    script {
-                        def scannerHome = tool 'LocalSonarScanner'
-                        sh """
-                        ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=classroom-booking \
-                            -Dsonar.projectName=classroom-booking \
-                            -Dsonar.sources=services/room-service/src/main,services/booking-service/src/main \
-                            -Dsonar.tests=services/room-service/src/test,services/booking-service/src/test \
-                            -Dsonar.java.binaries=services/room-service/target/classes,services/booking-service/target/classes \
-                            -Dsonar.junit.reportPaths=services/room-service/target/surefire-reports,services/booking-service/target/surefire-reports \
-                            -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml \
-                            -Dsonar.scanner.skipJreProvisioning=true
-                        """
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                        mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
+                        -N \
+                        -Dsonar.projectKey=classroom-booking \
+                        -Dsonar.projectName=classroom-booking \
+                        -Dsonar.sources=services/room-service/src/main/java,services/booking-service/src/main/java \
+                        -Dsonar.tests=services/room-service/src/test/java,services/booking-service/src/test/java \
+                        -Dsonar.java.binaries=services/room-service/target/classes,services/booking-service/target/classes \
+                        -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml \
+                        -Dsonar.login=$SONAR_TOKEN
+                        '''
                     }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
