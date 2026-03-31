@@ -2,8 +2,6 @@ pipeline {
     agent any
 
     environment {
-        GITHUB_TOKEN = credentials('github-token')
-
         // Single Sonar project for whole repo
         SONAR_PROJECT_KEY = 'classroom-booking'
         SONAR_PROJECT_NAME = 'classroom-booking'
@@ -109,6 +107,7 @@ pipeline {
                         reportDir: 'services/room-service/target/site/jacoco',
                         reportFiles: 'index.html',
                         reportName: 'JaCoCo - room-service',
+                        allowMissing: true,
                         keepAll: true,
                         alwaysLinkToLastBuild: true
                     ])
@@ -117,6 +116,7 @@ pipeline {
                         reportDir: 'services/booking-service/target/site/jacoco',
                         reportFiles: 'index.html',
                         reportName: 'JaCoCo - booking-service',
+                        allowMissing: true,
                         keepAll: true,
                         alwaysLinkToLastBuild: true
                     ])
