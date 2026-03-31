@@ -8,8 +8,6 @@ pipeline {
         SONAR_PROJECT_KEY = 'classroom-booking'
         SONAR_PROJECT_NAME = 'classroom-booking'
         EMAIL_RECIPIENTS = 'sanket.shetty9423@gmail.com'
-        DB_USER = credentials('rds-db-user')
-        DB_PASSWORD = credentials('rds-db-password')
 
         DOCKER_REPO_ROOM = 'sanketshetty23/room-service'
         DOCKER_REPO_BOOKING = 'sanketshetty23/booking-service'
@@ -101,25 +99,27 @@ pipeline {
 
     post {
         always {
-            junit testResults: 'services/**/target/surefire-reports/*.xml', allowEmptyResults: true
+            node {
+                junit testResults: 'services/**/target/surefire-reports/*.xml', allowEmptyResults: true
 
-            archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, *.log', fingerprint: true
+                archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, *.log', fingerprint: true
 
-            publishHTML(target: [
-                reportDir: 'services/room-service/target/site/jacoco',
-                reportFiles: 'index.html',
-                reportName: 'JaCoCo - room-service',
-                keepAll: true,
-                alwaysLinkToLastBuild: true
-            ])
+                publishHTML(target: [
+                    reportDir: 'services/room-service/target/site/jacoco',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo - room-service',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true
+                ])
 
-            publishHTML(target: [
-                reportDir: 'services/booking-service/target/site/jacoco',
-                reportFiles: 'index.html',
-                reportName: 'JaCoCo - booking-service',
-                keepAll: true,
-                alwaysLinkToLastBuild: true
-            ])
+                publishHTML(target: [
+                    reportDir: 'services/booking-service/target/site/jacoco',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo - booking-service',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true
+                ])
+            }
 
        
         }
