@@ -3,6 +3,7 @@ package com.studentteam.auth_service.auth.service;
 import com.studentteam.auth_service.auth.dto.AuthDtos;
 import com.studentteam.auth_service.auth.entity.UserAccount;
 import com.studentteam.auth_service.auth.entity.UserStatus;
+import com.studentteam.auth_service.auth.exception.InvalidCredentialsException;
 import com.studentteam.auth_service.auth.jwt.JwtService;
 import com.studentteam.auth_service.auth.repository.UserAccountRepository;
 import org.junit.jupiter.api.Test;
@@ -138,8 +139,8 @@ class AuthServiceTest {
     when(repository.findByEmailIgnoreCase("admin@tus.ie")).thenReturn(Optional.of(user));
     when(encoder.matches("wrong", "HASHED")).thenReturn(false);
 
-    IllegalArgumentException ex = assertThrows(
-        IllegalArgumentException.class,
+    InvalidCredentialsException ex = assertThrows(
+        InvalidCredentialsException.class,
         () -> authService.login(new AuthDtos.LoginRequest("admin@tus.ie", "wrong"))
     );
 

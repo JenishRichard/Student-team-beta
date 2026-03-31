@@ -1,5 +1,6 @@
 package com.studentteam.auth_service.auth.controller;
 
+import com.studentteam.auth_service.auth.exception.InvalidCredentialsException;
 import io.jsonwebtoken.JwtException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,10 @@ public class AuthExceptionHandler {
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Map<String, Object>> handleAny(Exception ex) {
     if (ex instanceof JwtException) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body(Map.of("error", "Unauthorized", "message", ex.getMessage()));
+    }
+    if (ex instanceof InvalidCredentialsException) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
           .body(Map.of("error", "Unauthorized", "message", ex.getMessage()));
     }
