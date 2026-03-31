@@ -48,26 +48,17 @@ pipeline {
         stage('SonarQube Analysis (single project)') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    script {
-                        def scannerCmd = 'sonar-scanner'
-                        try {
-                            def scannerHome = tool 'LocalSonarScanner'
-                            scannerCmd = "${scannerHome}/bin/sonar-scanner"
-                        } catch (Exception ignored) {
-                            echo "LocalSonarScanner tool is not configured; using sonar-scanner from PATH."
-                        }
-                        sh """
-                        ${scannerCmd} \
-                            -Dsonar.projectKey=classroom-booking \
-                            -Dsonar.projectName=classroom-booking \
-                            -Dsonar.sources=services/room-service/src/main,services/booking-service/src/main \
-                            -Dsonar.tests=services/room-service/src/test,services/booking-service/src/test \
-                            -Dsonar.java.binaries=services/room-service/target/classes,services/booking-service/target/classes \
-                            -Dsonar.junit.reportPaths=services/room-service/target/surefire-reports,services/booking-service/target/surefire-reports \
-                            -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml \
-                            -Dsonar.scanner.skipJreProvisioning=true
-                        """
-                    }
+                    sh '''
+                    mvn -N -f pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                        -Dsonar.projectKey=classroom-booking \
+                        -Dsonar.projectName=classroom-booking \
+                        -Dsonar.sources=services/room-service/src/main,services/booking-service/src/main \
+                        -Dsonar.tests=services/room-service/src/test,services/booking-service/src/test \
+                        -Dsonar.java.binaries=services/room-service/target/classes,services/booking-service/target/classes \
+                        -Dsonar.junit.reportPaths=services/room-service/target/surefire-reports,services/booking-service/target/surefire-reports \
+                        -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml \
+                        -Dsonar.scanner.skipJreProvisioning=true
+                    '''
                 }
             }
         }
