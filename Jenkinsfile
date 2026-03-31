@@ -48,31 +48,24 @@ pipeline {
         stage('SonarQube Analysis (single project)') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    script {
-                        def injectedSonarUrl = env.SONAR_HOST_URL ?: ''
-                        def effectiveSonarUrl = injectedSonarUrl.contains('host.docker.internal')
-                            ? injectedSonarUrl.replace('host.docker.internal', '127.0.0.1')
-                            : injectedSonarUrl
-                        def sonarHostArg = effectiveSonarUrl ? "-Dsonar.host.url=${effectiveSonarUrl}" : ''
-
-                        echo "Using SonarQube URL: ${effectiveSonarUrl ?: 'not provided by Jenkins'}"
-
-                        sh """
-                        mvn -N -f pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \\
-                            ${sonarHostArg} \\
-                            -Dsonar.projectKey=classroom-booking \\
-                            -Dsonar.projectName=classroom-booking \\
-                            -Dsonar.sources=services/room-service/src/main,services/booking-service/src/main \\
-                            -Dsonar.tests=services/room-service/src/test,services/booking-service/src/test \\
-                            -Dsonar.java.binaries=services/room-service/target/classes,services/booking-service/target/classes \\
-                            -Dsonar.junit.reportPaths=services/room-service/target/surefire-reports,services/booking-service/target/surefire-reports \\
-                            -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml \\
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                            mvn -N -f pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
+                            -Dsonar.host.url=http://127.0.0.1:9000 \
+                            -Dsonar.token=$SONAR_TOKEN \
+                            -Dsonar.projectKey=classroom-booking \
+                            -Dsonar.projectName=classroom-booking \
+                            -Dsonar.sources=services/room-service/src/main,services/booking-service/src/main \
+                            -Dsonar.tests=services/room-service/src/test,services/booking-service/src/test \
+                            -Dsonar.java.binaries=services/room-service/target/classes,services/booking-service/target/classes \
+                            -Dsonar.junit.reportPaths=services/room-service/target/surefire-reports,services/booking-service/target/surefire-reports \
+                            -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml \
                             -Dsonar.scanner.skipJreProvisioning=true
-                        """
+                        '''
                     }
                 }
             }
-        }
+}
 
         stage('Docker Build') {
             steps {
