@@ -12,7 +12,7 @@ spring:
     config:
       server:
         native:
-               search-locations: file:D:/Microservcies%20and%20CICD/Project%20Code/Student-team-beta/services/config-server/config-repo
+               search-locations: file:../config-repo
   endpoints:
     web:
       exposure:
