@@ -99,26 +99,28 @@ pipeline {
 
     post {
         always {
-            node {
-                junit testResults: 'services/**/target/surefire-reports/*.xml', allowEmptyResults: true
+            script {
+                node(env.NODE_NAME ?: '') {
+                    junit testResults: 'services/**/target/surefire-reports/*.xml', allowEmptyResults: true
 
-                archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, *.log', fingerprint: true
+                    archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, *.log', fingerprint: true
 
-                publishHTML(target: [
-                    reportDir: 'services/room-service/target/site/jacoco',
-                    reportFiles: 'index.html',
-                    reportName: 'JaCoCo - room-service',
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true
-                ])
+                    publishHTML(target: [
+                        reportDir: 'services/room-service/target/site/jacoco',
+                        reportFiles: 'index.html',
+                        reportName: 'JaCoCo - room-service',
+                        keepAll: true,
+                        alwaysLinkToLastBuild: true
+                    ])
 
-                publishHTML(target: [
-                    reportDir: 'services/booking-service/target/site/jacoco',
-                    reportFiles: 'index.html',
-                    reportName: 'JaCoCo - booking-service',
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true
-                ])
+                    publishHTML(target: [
+                        reportDir: 'services/booking-service/target/site/jacoco',
+                        reportFiles: 'index.html',
+                        reportName: 'JaCoCo - booking-service',
+                        keepAll: true,
+                        alwaysLinkToLastBuild: true
+                    ])
+                }
             }
 
        
