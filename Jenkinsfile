@@ -60,7 +60,8 @@ pipeline {
                 withSonarQubeEnv('LocalSonar') {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                         sh '''
-                        mvn sonar:sonar \
+                        mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
+                        -N \
                         -Dsonar.projectKey=classroom-booking \
                         -Dsonar.projectName=classroom-booking \
                         -Dsonar.sources=services/room-service/src/main/java,services/booking-service/src/main/java \
