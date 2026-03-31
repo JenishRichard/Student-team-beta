@@ -47,11 +47,17 @@ pipeline {
         // Single SonarQube analysis for both services into ONE Sonar project
         stage('SonarQube Analysis (single project)') {
             steps {
-                withSonarQubeEnv('LocalSonar') {
+                withSonarQubeEnv('SonarQube') {
                     script {
-                        def scannerHome = tool 'LocalSonarScanner'
+                        def scannerCmd = 'sonar-scanner'
+                        try {
+                            def scannerHome = tool 'LocalSonarScanner'
+                            scannerCmd = "${scannerHome}/bin/sonar-scanner"
+                        } catch (Exception ignored) {
+                            echo "LocalSonarScanner tool is not configured; using sonar-scanner from PATH."
+                        }
                         sh """
-                        ${scannerHome}/bin/sonar-scanner \
+                        ${scannerCmd} \
                             -Dsonar.projectKey=classroom-booking \
                             -Dsonar.projectName=classroom-booking \
                             -Dsonar.sources=services/room-service/src/main,services/booking-service/src/main \
@@ -98,28 +104,27 @@ pipeline {
     post {
         always {
             script {
-                node(env.NODE_NAME ?: '') {
-                    junit testResults: 'services/**/target/surefire-reports/*.xml', allowEmptyResults: true
+                junit testResults: 'services/**/target/surefire-reports/*.xml', allowEmptyResults: true
 
-                    archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, *.log', fingerprint: true
+                archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, *.log', fingerprint: true
 
-                    publishHTML(target: [
-                        reportDir: 'services/room-service/target/site/jacoco',
-                        reportFiles: 'index.html',
-                        reportName: 'JaCoCo - room-service',
-                        allowMissing: true,
-                        keepAll: true,
-                        alwaysLinkToLastBuild: true
-                    ])
+                publishHTML(target: [
+                    reportDir: 'services/room-service/target/site/jacoco',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo - room-service',
+                    allowMissing: true,
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true
+                ])
 
-                    publishHTML(target: [
-                        reportDir: 'services/booking-service/target/site/jacoco',
-                        reportFiles: 'index.html',
-                        reportName: 'JaCoCo - booking-service',
-                        allowMissing: true,
-                        keepAll: true,
-                        alwaysLinkToLastBuild: true
-                    ])
+                publishHTML(target: [
+                    reportDir: 'services/booking-service/target/site/jacoco',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo - booking-service',
+                    allowMissing: true,
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true
+                ])
                 }
             }
 
