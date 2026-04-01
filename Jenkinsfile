@@ -85,7 +85,7 @@ pipeline {
 
         stage('Run Karate Tests') {
             steps {
-                dir('karate-tests') {
+                dir('services/karate-tests') {
                     sh 'mvn test'
                 }
             }
