@@ -83,6 +83,14 @@ pipeline {
             }
         }
 
+        stage('Run Karate Tests') {
+            steps {
+                dir('karate-tests') {
+                    sh 'mvn test'
+                }
+            }
+        }
+
         stage('Docker Build') {
             steps {
                 sh """
@@ -114,9 +122,8 @@ pipeline {
 
     post {
         always {
-            junit testResults: 'services/**/target/surefire-reports/*.xml', allowEmptyResults: true
-
-            archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, *.log', fingerprint: true
+            junit testResults: 'services/**/target/surefire-reports/*.xml, services/karate-tests/target/surefire-reports/*.xml', allowEmptyResults: true
+            archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, services/karate-tests/target/karate-reports/**, services/karate-tests/target/surefire-reports/*.xml, *.log', fingerprint: true
 
             publishHTML(target: [
                 reportDir: 'services/room-service/target/site/jacoco',
@@ -130,6 +137,14 @@ pipeline {
                 reportDir: 'services/booking-service/target/site/jacoco',
                 reportFiles: 'index.html',
                 reportName: 'JaCoCo - booking-service',
+                keepAll: true,
+                alwaysLinkToLastBuild: true
+            ])
+
+            publishHTML(target: [
+                reportDir: 'services/karate-tests/target/karate-reports',
+                reportFiles: 'karate-summary.html',
+                reportName: 'Karate API Test Report',
                 keepAll: true,
                 alwaysLinkToLastBuild: true
             ])
