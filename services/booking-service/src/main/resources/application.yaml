@@ -2,6 +2,10 @@ server:
   port: ${SERVER_PORT:8083}
 
 spring:
+  cloud:
+    config:
+      enabled: false
+
   datasource:
     url: jdbc:mysql://${DB_HOST:classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com}:${DB_PORT:3306}/booking_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${DB_USER:admin}
@@ -25,3 +29,17 @@ management:
     web:
       exposure:
         include: health,info
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      roomService:
+        failure-rate-threshold: 50
+        sliding-window-size: 5
+        wait-duration-in-open-state: 10s
+
+  retry:
+    instances:
+      roomService:
+        max-attempts: 3
+        wait-duration: 2s
