@@ -1,17 +1,28 @@
 Feature: Room Service API Tests
 
 Background:
-    * def token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhMDAzMzYxNDRAc3R1ZGVudC50dXMuaWUiLCJyb2xlcyI6WyJBRE1JTiJdLCJpYXQiOjE3NzUwNTQ3MTUsImV4cCI6MTc3NTA1ODMxNX0.pRlujXikRoEXChvR8MMC2M0fXDsANaYio0POpF_dSZs'
-    * header Authorization = 'Bearer ' + token
+    Given url authServiceUrl + '/auth/login'
+    And request
+    """
+    {
+      "email": "admin@tus.ie",
+      "password": "Admin@123"
+    }
+    """
+    When method POST
+    Then status 200
+    * def token = response.accessToken
 
 Scenario: Get all rooms
     Given url roomServiceUrl + '/rooms'
+    And header Authorization = 'Bearer ' + token
     When method GET
     Then status 200
     And match response != null
 
 Scenario: Create room
     Given url roomServiceUrl + '/rooms'
+    And header Authorization = 'Bearer ' + token
     And request
     """
     {
@@ -28,12 +39,14 @@ Scenario: Create room
 
 Scenario: Get room by id
     Given url roomServiceUrl + '/rooms/2'
+    And header Authorization = 'Bearer ' + token
     When method GET
     Then status 200
     And match response.id == 2
 
 Scenario: Update room
     Given url roomServiceUrl + '/rooms/2'
+    And header Authorization = 'Bearer ' + token
     And request
     """
     {
@@ -50,5 +63,6 @@ Scenario: Update room
 
 Scenario: Delete room
     Given url roomServiceUrl + '/rooms/2'
+    And header Authorization = 'Bearer ' + token
     When method DELETE
     Then status 204
