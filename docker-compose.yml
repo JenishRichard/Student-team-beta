@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   room-service:
-    image: sanketshetty23/room-service:latest
+    build: ./room-service
     container_name: room-service
     ports:
       - "8081:8081"
@@ -13,7 +11,7 @@ services:
       DB_PASSWORD: admin123
 
   booking-service:
-    image: sanketshetty23/booking-service:latest
+    build: ./booking-service
     container_name: booking-service
     ports:
       - "8083:8083"
