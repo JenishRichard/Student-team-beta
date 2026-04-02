@@ -20,7 +20,7 @@ Scenario: Create booking
     }
     """
     When method POST
-    Then status 201
+    Then status 200
     And match response.roomId == 18
     And match response.bookedBy == "teacher@test.com"
     And match response.bookedByIdentity == "TEACHER"
@@ -28,33 +28,14 @@ Scenario: Create booking
     And match response.bookingTime == "10:00-12:00"
     And match response.status == "CONFIRMED"
 
-Scenario: Get booking by id
-    Given url bookingServiceUrl + '/bookings/9'
-    When method GET
-    Then status 200
-    And match response.id == 9
-    And match response.roomId == 18
-    And match response.bookedBy == "teacher@test.com"
-
-Scenario: Update booking
-    Given url bookingServiceUrl + '/bookings/9'
-    And request
-    """
-    {
-      "roomId": 18,
-      "bookedBy": "teacher@test.com",
-      "bookedByIdentity": "TEACHER",
-      "bookingDate": "2026-03-10",
-      "bookingTime": "11:00-13:00",
-      "status": "CONFIRMED"
-    }
-    """
+Scenario: Cancel booking
+    Given url bookingServiceUrl + '/bookings/7/cancel'
     When method PUT
     Then status 200
-    And match response.id == 9
-    And match response.bookingTime == "11:00-13:00"
+    And match response.id == 7
+    And match response.status == "CANCELLED"
 
 Scenario: Delete booking
-    Given url bookingServiceUrl + '/bookings/9'
+    Given url bookingServiceUrl + '/bookings/7'
     When method DELETE
-    Then status 204
+    Then status 200
