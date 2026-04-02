@@ -17,4 +17,8 @@ public interface RoomService {
     Room updateRoom(Long id, Room room);
 
     void deleteRoom(Long id);
+
+	String getRoomDetails(Long roomId, String token);
+
+
 }
