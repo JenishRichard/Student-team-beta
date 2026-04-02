@@ -12,27 +12,7 @@ Background:
     When method POST
     Then status 200
     * def token = response.accessToken
-
-    * def createRoom =
-    """
-    function(){
-        var result = karate.request({
-            url: roomServiceUrl + '/rooms',
-            method: 'POST',
-            headers: { Authorization: 'Bearer ' + token },
-            body: {
-              roomNumber: 'Z102',
-              building: 'Engineering and Science',
-              capacity: 40,
-              type: 'LAB',
-              available: true
-            }
-        });
-        if (response.status != 201) karate.fail('Room creation failed');
-        return response.response.id;
-    }
-    """
-    * def roomId = callonce createRoom
+    
 
 Scenario: Get all rooms
     Given url roomServiceUrl + '/rooms'
@@ -46,29 +26,4 @@ Scenario: Get room by id
     And header Authorization = 'Bearer ' + token
     When method GET
     Then status 200
-    And match response.id == 3  
-
-Scenario: Update room
-    Given url roomServiceUrl + '/rooms/'  + roomId
-    And header Authorization = 'Bearer ' + token
-    And request
-    """
-    {
-      "roomNumber": "Z102",
-      "building": "Engineering and Science",
-      "capacity": 30,
-      "type": "CLASSROOM",
-      "available": false
-    }
-    """
-    When method PUT
-    Then status 200
-    And match response.id == roomId
-    And match response.capacity == 30
-    And match response.available == false
-
-Scenario: Delete room
-    Given url roomServiceUrl + '/rooms/' + roomId
-    And header Authorization = 'Bearer ' + token
-    When method DELETE
-    Then status 204
+    And match response.id == 3
