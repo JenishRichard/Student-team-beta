@@ -8,18 +8,32 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-
+import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(BookingController.class)
+@WebMvcTest(
+        controllers = BookingController.class,
+        excludeAutoConfiguration = {SecurityAutoConfiguration.class}
+)
+@TestPropertySource(properties = {
+        "spring.cloud.config.enabled=false",
+        "spring.config.import=",
+        "management.endpoints.enabled-by-default=false"
+})
 class BookingControllerTest {
 
     @Autowired
@@ -33,7 +47,6 @@ class BookingControllerTest {
 
     @Test
     void testGetAllBookings() throws Exception {
-
         Booking booking = new Booking();
 
         Mockito.when(bookingService.getAllBookings())
@@ -45,7 +58,6 @@ class BookingControllerTest {
 
     @Test
     void testCreateBooking() throws Exception {
-
         Booking booking = new Booking();
 
         Mockito.when(bookingService.createBooking(Mockito.any()))
@@ -59,7 +71,6 @@ class BookingControllerTest {
 
     @Test
     void testCancelBooking() throws Exception {
-
         Booking booking = new Booking();
 
         Mockito.when(bookingService.cancelBooking(1L))
@@ -71,33 +82,30 @@ class BookingControllerTest {
 
     @Test
     void testDeleteBooking() throws Exception {
-
         mockMvc.perform(delete("/bookings/1"))
                 .andExpect(status().isOk());
     }
 
     @Test
     void testCheckAvailabilityAvailable() throws Exception {
-
-        Mockito.when(bookingService.isRoomAvailable(101L,"10:00-12:00"))
+        Mockito.when(bookingService.isRoomAvailable(101L, "10:00-12:00"))
                 .thenReturn(true);
 
         mockMvc.perform(get("/bookings/availability")
-                .param("roomId","101")
-                .param("timeRange","10:00-12:00"))
+                .param("roomId", "101")
+                .param("timeRange", "10:00-12:00"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.available").value(true));
     }
 
     @Test
     void testCheckAvailabilityNotAvailable() throws Exception {
-
-        Mockito.when(bookingService.isRoomAvailable(101L,"10:00-12:00"))
+        Mockito.when(bookingService.isRoomAvailable(101L, "10:00-12:00"))
                 .thenReturn(false);
 
         mockMvc.perform(get("/bookings/availability")
-                .param("roomId","101")
-                .param("timeRange","10:00-12:00"))
+                .param("roomId", "101")
+                .param("timeRange", "10:00-12:00"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.available").value(false));
     }
