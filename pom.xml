@@ -12,6 +12,9 @@
 
   <modules>
     <module>services/config-server</module>
+    <module>services/booking-service</module>
+    <module>services/room-service</module>
+    <module>services/karate-tests</module>
   </modules>
 
 </project>
