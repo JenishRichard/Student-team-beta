@@ -13,13 +13,14 @@ Background:
     Then status 200
     * def token = response.accessToken
 
-     * def createRoom =
+    * def createRoom =
     """
     function(){
-        var result = karate.call({
+        var result = karate.request({
             url: roomServiceUrl + '/rooms',
             method: 'POST',
-            request: {
+            headers: { Authorization: 'Bearer ' + token },
+            body: {
               roomNumber: 'Z102',
               building: 'Engineering and Science',
               capacity: 40,
@@ -27,7 +28,8 @@ Background:
               available: true
             }
         });
-        return result.response.id;
+        if (response.status != 201) karate.fail('Room creation failed');
+        return response.response.id;
     }
     """
     * def roomId = callonce createRoom
@@ -61,7 +63,9 @@ Scenario: Update room
     """
     When method PUT
     Then status 200
+    And match response.id == roomId
     And match response.capacity == 30
+    And match response.available == false
 
 Scenario: Delete room
     Given url roomServiceUrl + '/rooms/' + roomId
