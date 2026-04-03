@@ -66,7 +66,7 @@ public class BookingService {
 
     public Booking cancelBooking(Long id) {
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
         booking.setStatus(BookingStatus.CANCELLED);
         return bookingRepository.save(booking);
@@ -118,8 +118,7 @@ public class BookingService {
             return response.getBody();
         });
     }
-
-    public CompletableFuture<String> fallbackRoomService(Long roomId, String token, Exception ex) {
+    public CompletableFuture<String> fallbackRoomService(Long roomId, Exception ex) {
         log.error("Room service failed or timed out for roomId={}", roomId, ex);
         return CompletableFuture.completedFuture(
                 "Room service is slow or unavailable. Please try again later."

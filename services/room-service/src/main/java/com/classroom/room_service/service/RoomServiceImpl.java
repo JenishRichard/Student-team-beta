@@ -70,7 +70,6 @@ public class RoomServiceImpl implements RoomService{
 
 	@Override
 	public String getRoomDetails(Long roomId, String token) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 }

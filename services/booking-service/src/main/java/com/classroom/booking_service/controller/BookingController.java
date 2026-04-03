@@ -55,4 +55,4 @@ public class BookingController {
             @RequestHeader("Authorization") String token) {
         return service.getRoomDetails(roomId, token);
     }
-}
+}  
