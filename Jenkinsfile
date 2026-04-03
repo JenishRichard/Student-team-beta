@@ -83,6 +83,35 @@ pipeline {
             }
         }
 
+        stage('Start microservices for Karate') {
+            steps {
+                sh '''
+                echo "Stopping old services if running..."
+                pkill -f 'room-service-0.0.1-SNAPSHOT.jar' || true
+                pkill -f 'booking-service-0.0.1-SNAPSHOT.jar' || true
+
+                echo "Starting Room Service..."
+                nohup java -jar services/room-service/target/room-service-0.0.1-SNAPSHOT.jar > room.log 2>&1 &
+
+                echo "Starting Booking Service..."
+                nohup java -jar services/booking-service/target/booking-service-0.0.1-SNAPSHOT.jar > booking.log 2>&1 &
+
+                echo "Waiting for services to start..."
+                sleep 25
+                '''
+            }
+        }
+
+        stage('Verify Services') {
+            steps {
+                sh '''
+                echo "Checking ports..."
+                lsof -i :8081 || true
+                lsof -i :8083 || true
+                '''
+            }
+        }
+
         stage('Run Karate Tests') {
             steps {
                 dir('services/karate-tests') {
@@ -126,6 +155,13 @@ pipeline {
 
     post {
         always {
+
+            sh '''
+            echo "Stopping services..."
+            pkill -f 'room-service-0.0.1-SNAPSHOT.jar' || true
+            pkill -f 'booking-service-0.0.1-SNAPSHOT.jar' || true
+            '''
+
             junit testResults: 'services/**/target/surefire-reports/*.xml, services/karate-tests/target/surefire-reports/*.xml', allowEmptyResults: true
             archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, services/karate-tests/target/karate-reports/**, services/karate-tests/target/surefire-reports/*.xml, *.log', fingerprint: true
 
