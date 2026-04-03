@@ -9,6 +9,7 @@ import java.util.List;
 
 @Service
 public class RoomServiceImpl implements RoomService{
+    private static final String ROOM_NOT_FOUND_MESSAGE = "Room not found";
 
     private final RoomRepository roomRepository;
 
@@ -24,7 +25,7 @@ public class RoomServiceImpl implements RoomService{
     @Override
     public Room getRoomById(Long id) {
         return roomRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ROOM_NOT_FOUND_MESSAGE));
     }
 
     @Override
@@ -36,7 +37,7 @@ public class RoomServiceImpl implements RoomService{
     public Room updateRoom(Long id, Room room) {
 
         Room existing = roomRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ROOM_NOT_FOUND_MESSAGE));
 
         existing.setRoomNumber(room.getRoomNumber());
         existing.setBuilding(room.getBuilding());
@@ -51,7 +52,7 @@ public class RoomServiceImpl implements RoomService{
     public void deleteRoom(Long id) {
 
         Room existing = roomRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ROOM_NOT_FOUND_MESSAGE));
 
         roomRepository.delete(existing);
     }

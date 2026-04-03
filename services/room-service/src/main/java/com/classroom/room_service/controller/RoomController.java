@@ -31,7 +31,6 @@ public class RoomController {
         this.roomService = roomService;
     }
 
-    // GET /rooms
     @GetMapping
     public ResponseEntity<List<Room>> getRooms(
             @RequestParam(required = false) String roomNumber,
@@ -46,31 +45,27 @@ public class RoomController {
     public String getRoomDetails(
             @PathVariable Long roomId,
             @RequestHeader("Authorization") String token) {
-    	log.info("TOKEN IN CONTROLLER: {}", token);
+        log.info("TOKEN IN CONTROLLER: {}", token);
         return roomService.getRoomDetails(roomId, token);
     }
-    // GET /rooms/{id}
     @GetMapping("/{id}")
     public ResponseEntity<Room> getRoomById(@PathVariable Long id) {
         Room room = roomService.getRoomById(id);
         return ResponseEntity.ok(room);
     }
 
-    // POST /rooms
     @PostMapping
     public ResponseEntity<Room> createRoom(@RequestBody Room room) {
         Room saved = roomService.createRoom(room);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    // PUT /rooms/{id}
     @PutMapping("/{id}")
     public ResponseEntity<Room> updateRoom(@PathVariable Long id, @RequestBody Room room) {
         Room updated = roomService.updateRoom(id, room);
         return ResponseEntity.ok(updated);
     }
 
-    // DELETE /rooms/{id}
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRoom(@PathVariable Long id) {
         roomService.deleteRoom(id);

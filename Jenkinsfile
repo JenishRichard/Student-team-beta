@@ -57,18 +57,20 @@ pipeline {
         // Single SonarQube analysis for both services into ONE Sonar project
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('LocalSonar') {
+                withSonarQubeEnv('SonarQube') {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                         sh '''
-                        mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
-                        -N \
-                        -Dsonar.projectKey=classroom-booking \
-                        -Dsonar.projectName=classroom-booking \
-                        -Dsonar.sources=services/room-service/src/main/java,services/booking-service/src/main/java \
-                        -Dsonar.tests=services/room-service/src/test/java,services/booking-service/src/test/java \
-                        -Dsonar.java.binaries=services/room-service/target/classes,services/booking-service/target/classes \
-                        -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml \
-                        -Dsonar.login=$SONAR_TOKEN
+                            mvn -N -f pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
+                            -Dsonar.host.url=http://127.0.0.1:9000 \
+                            -Dsonar.token=$SONAR_TOKEN \
+                            -Dsonar.projectKey=classroom-booking \
+                            -Dsonar.projectName=classroom-booking \
+                            -Dsonar.sources=services/room-service/src/main,services/booking-service/src/main \
+                            -Dsonar.tests=services/room-service/src/test,services/booking-service/src/test \
+                            -Dsonar.java.binaries=services/room-service/target/classes,services/booking-service/target/classes \
+                            -Dsonar.junit.reportPaths=services/room-service/target/surefire-reports,services/booking-service/target/surefire-reports \
+                            -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml \
+                            -Dsonar.scanner.skipJreProvisioning=true
                         '''
                     }
                 }
@@ -155,13 +157,11 @@ pipeline {
 
     post {
         always {
-
             sh '''
             echo "Stopping services..."
             pkill -f 'room-service-0.0.1-SNAPSHOT.jar' || true
             pkill -f 'booking-service-0.0.1-SNAPSHOT.jar' || true
             '''
-
             junit testResults: 'services/**/target/surefire-reports/*.xml, services/karate-tests/target/surefire-reports/*.xml', allowEmptyResults: true
             archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, services/karate-tests/target/karate-reports/**, services/karate-tests/target/surefire-reports/*.xml, *.log', fingerprint: true
 
@@ -169,6 +169,7 @@ pipeline {
                 reportDir: 'services/room-service/target/site/jacoco',
                 reportFiles: 'index.html',
                 reportName: 'JaCoCo - room-service',
+                allowMissing: true,
                 keepAll: true,
                 alwaysLinkToLastBuild: true
             ])
@@ -177,6 +178,7 @@ pipeline {
                 reportDir: 'services/booking-service/target/site/jacoco',
                 reportFiles: 'index.html',
                 reportName: 'JaCoCo - booking-service',
+                allowMissing: true,
                 keepAll: true,
                 alwaysLinkToLastBuild: true
             ])
@@ -188,24 +190,22 @@ pipeline {
                 keepAll: true,
                 alwaysLinkToLastBuild: true
             ])
-
-       
         }
 
         success {
-                echo 'Pipeline completed successfully.'
+            echo 'Pipeline completed successfully.'
         }
 
         unstable {
             emailext(
-            subject: "UNSTABLE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            body: """Build is UNSTABLE
+                subject: "UNSTABLE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """Build is UNSTABLE
 
-            Job: ${env.JOB_NAME}
-            Build Number: ${env.BUILD_NUMBER}
-            Check console output: ${env.BUILD_URL}
-            """,
-            to: "${env.EMAIL_RECIPIENTS}"
+                Job: ${env.JOB_NAME}
+                Build Number: ${env.BUILD_NUMBER}
+                Check console output: ${env.BUILD_URL}
+                """,
+                to: "${env.EMAIL_RECIPIENTS}"
             )
         }
 
