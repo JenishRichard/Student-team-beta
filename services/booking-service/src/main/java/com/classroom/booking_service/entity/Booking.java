@@ -3,6 +3,7 @@ package com.classroom.booking_service.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
+
 @Entity
 @Table(
     name = "bookings",
@@ -37,7 +38,9 @@ public class Booking {
     public Long getId() {
         return id;
     }
-
+    public void setId(Long id) {
+        this.id = id;
+    }
     public Long getRoomId() {
         return roomId;
     }

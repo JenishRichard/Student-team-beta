@@ -27,4 +27,17 @@ class GlobalExceptionHandlerTest {
 
         assertEquals("Room already booked", ex.getMessage());
     }
+
+    @Test
+    void testHandleIllegalArgument() {
+
+        GlobalExceptionHandler handler = new GlobalExceptionHandler();
+
+        IllegalArgumentException ex =
+                new IllegalArgumentException("Invalid input provided");
+
+        String response = handler.handleIllegalArgument(ex);
+
+        assertEquals("Invalid input provided", response);
+    }
 }
