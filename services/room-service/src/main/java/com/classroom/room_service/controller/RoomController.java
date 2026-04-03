@@ -1,6 +1,7 @@
 package com.classroom.room_service.controller;
 
 import com.classroom.room_service.entity.Room;
+
 import com.classroom.room_service.service.RoomService;
 
 import org.springframework.http.HttpStatus;
@@ -11,18 +12,21 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/rooms")
 public class RoomController {
 
     private final RoomService roomService;
-
+    private static final Logger log = LoggerFactory.getLogger(RoomController.class);
     public RoomController(RoomService roomService) {
         this.roomService = roomService;
     }
@@ -35,6 +39,14 @@ public class RoomController {
 
         List<Room> rooms = roomService.filterRooms(roomNumber, building, type);
         return ResponseEntity.ok(rooms);
+    }
+
+    @GetMapping("/room-details/{roomId}")
+    public String getRoomDetails(
+            @PathVariable Long roomId,
+            @RequestHeader("Authorization") String token) {
+        log.info("TOKEN IN CONTROLLER: {}", token);
+        return roomService.getRoomDetails(roomId, token);
     }
 
     @GetMapping("/{id}")

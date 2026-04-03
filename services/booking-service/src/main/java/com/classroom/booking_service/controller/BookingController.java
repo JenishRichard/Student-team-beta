@@ -2,12 +2,12 @@ package com.classroom.booking_service.controller;
 
 import com.classroom.booking_service.entity.Booking;
 import com.classroom.booking_service.service.BookingService;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/bookings")
@@ -24,12 +24,10 @@ public class BookingController {
         return service.getAllBookings();
     }
 
-
     @PostMapping
     public Booking createBooking(@RequestBody Booking booking) {
         return service.createBooking(booking);
     }
-
 
     @PutMapping("/{id}/cancel")
     public Booking cancelBooking(@PathVariable Long id) {
@@ -48,7 +46,13 @@ public class BookingController {
             @RequestParam String timeRange) {
 
         boolean available = service.isRoomAvailable(roomId, timeRange);
-
         return Map.of("available", available);
     }
-}
+
+    @GetMapping("/room-details/{roomId}")
+    public CompletableFuture<String> getRoomDetails(
+            @PathVariable Long roomId,
+            @RequestHeader("Authorization") String token) {
+        return service.getRoomDetails(roomId, token);
+    }
+}  

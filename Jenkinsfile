@@ -2,10 +2,12 @@ pipeline {
     agent any
 
     environment {
-        // Single Sonar project for whole repo
-        SONAR_PROJECT_KEY = 'classroom-booking'
-        SONAR_PROJECT_NAME = 'classroom-booking'
+        GITHUB_TOKEN = credentials('github-token')
+
         EMAIL_RECIPIENTS = 'sanket.shetty9423@gmail.com'
+
+        DB_USER = credentials('rds-db-user')
+        DB_PASSWORD = credentials('rds-db-password')
 
         DOCKER_REPO_ROOM = 'sanketshetty23/room-service'
         DOCKER_REPO_BOOKING = 'sanketshetty23/booking-service'
@@ -19,11 +21,19 @@ pipeline {
         }
 
         // Single Build stage (build both services)
-        stage('Build & Test (room + booking)') {
+        stage('Build & Test room service') {
             steps {
                 sh '''
                   set -e
                   mvn -f services/room-service/pom.xml clean verify
+                '''
+            }
+        }
+
+        stage('Build & Test booking service') {
+            steps {
+                sh '''
+                  set -e
                   mvn -f services/booking-service/pom.xml clean verify
                 '''
             }
@@ -45,7 +55,7 @@ pipeline {
         }
 
         // Single SonarQube analysis for both services into ONE Sonar project
-        stage('SonarQube Analysis (single project)') {
+        stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
@@ -65,18 +75,54 @@ pipeline {
                     }
                 }
             }
-}
+        }
 
-        stage('Docker Build') {
+        stage('Quality Gate') {
             steps {
-                sh """
-                docker build -t ${DOCKER_REPO_ROOM}:${BUILD_NUMBER} -t ${DOCKER_REPO_ROOM}:latest services/room-service
-                docker build -t ${DOCKER_REPO_BOOKING}:${BUILD_NUMBER} -t ${DOCKER_REPO_BOOKING}:latest services/booking-service
-                """
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
-        stage('Docker Push') {
+        stage('Start microservices for Karate') {
+            steps {
+                sh '''
+                echo "Stopping old services if running..."
+                pkill -f 'room-service-0.0.1-SNAPSHOT.jar' || true
+                pkill -f 'booking-service-0.0.1-SNAPSHOT.jar' || true
+
+                echo "Starting Room Service..."
+                nohup java -jar services/room-service/target/room-service-0.0.1-SNAPSHOT.jar > room.log 2>&1 &
+
+                echo "Starting Booking Service..."
+                nohup java -jar services/booking-service/target/booking-service-0.0.1-SNAPSHOT.jar > booking.log 2>&1 &
+
+                echo "Waiting for services to start..."
+                sleep 25
+                '''
+            }
+        }
+
+        stage('Verify Services') {
+            steps {
+                sh '''
+                echo "Checking ports..."
+                lsof -i :8081 || true
+                lsof -i :8083 || true
+                '''
+            }
+        }
+
+        stage('Run Karate Tests') {
+            steps {
+                dir('services/karate-tests') {
+                    sh 'mvn clean test'
+                }
+            }
+        }
+
+        stage('Docker Build & Push') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
@@ -85,10 +131,23 @@ pipeline {
                 )]) {
                     sh '''
                     echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    docker push ${DOCKER_REPO_ROOM}:${BUILD_NUMBER}
-                    docker push ${DOCKER_REPO_ROOM}:latest
-                    docker push ${DOCKER_REPO_BOOKING}:${BUILD_NUMBER}
-                    docker push ${DOCKER_REPO_BOOKING}:latest
+
+                    docker buildx create --use || true
+                    docker buildx inspect --bootstrap
+
+                    docker buildx build \
+                    --platform linux/amd64,linux/arm64 \
+                    -t ${DOCKER_REPO_ROOM}:${BUILD_NUMBER} \
+                    -t ${DOCKER_REPO_ROOM}:latest \
+                    services/room-service \
+                    --push
+
+                    docker buildx build \
+                    --platform linux/amd64,linux/arm64 \
+                    -t ${DOCKER_REPO_BOOKING}:${BUILD_NUMBER} \
+                    -t ${DOCKER_REPO_BOOKING}:latest \
+                    services/booking-service \
+                    --push
                     '''
                 }
             }
@@ -98,29 +157,40 @@ pipeline {
 
     post {
         always {
-            script {
-                junit testResults: 'services/**/target/surefire-reports/*.xml', allowEmptyResults: true
+            sh '''
+            echo "Stopping services..."
+            pkill -f 'room-service-0.0.1-SNAPSHOT.jar' || true
+            pkill -f 'booking-service-0.0.1-SNAPSHOT.jar' || true
+            '''
 
-                archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, *.log', fingerprint: true
+            junit testResults: 'services/**/target/surefire-reports/*.xml, services/karate-tests/target/surefire-reports/*.xml', allowEmptyResults: true
+            archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, services/karate-tests/target/karate-reports/**, services/karate-tests/target/surefire-reports/*.xml, *.log', fingerprint: true
 
-                publishHTML(target: [
-                    reportDir: 'services/room-service/target/site/jacoco',
-                    reportFiles: 'index.html',
-                    reportName: 'JaCoCo - room-service',
-                    allowMissing: true,
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true
-                ])
+            publishHTML(target: [
+                reportDir: 'services/room-service/target/site/jacoco',
+                reportFiles: 'index.html',
+                reportName: 'JaCoCo - room-service',
+                allowMissing: true,
+                keepAll: true,
+                alwaysLinkToLastBuild: true
+            ])
 
-                publishHTML(target: [
-                    reportDir: 'services/booking-service/target/site/jacoco',
-                    reportFiles: 'index.html',
-                    reportName: 'JaCoCo - booking-service',
-                    allowMissing: true,
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true
-                ])
-            }
+            publishHTML(target: [
+                reportDir: 'services/booking-service/target/site/jacoco',
+                reportFiles: 'index.html',
+                reportName: 'JaCoCo - booking-service',
+                allowMissing: true,
+                keepAll: true,
+                alwaysLinkToLastBuild: true
+            ])
+
+            publishHTML(target: [
+                reportDir: 'services/karate-tests/target/karate-reports',
+                reportFiles: 'karate-summary.html',
+                reportName: 'Karate API Test Report',
+                keepAll: true,
+                alwaysLinkToLastBuild: true
+            ])
         }
 
         success {

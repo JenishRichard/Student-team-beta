@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class RoomServiceImpl implements RoomService {
+public class RoomServiceImpl implements RoomService{
 
     private static final String ROOM_NOT_FOUND_MESSAGE = "Room not found";
 
@@ -69,4 +69,9 @@ public class RoomServiceImpl implements RoomService {
                 .filter(r -> type == null || r.getType().equalsIgnoreCase(type))
                 .toList();
     }
+
+	@Override
+	public String getRoomDetails(Long roomId, String token) {
+		return null;
+	}
 }
