@@ -10,13 +10,11 @@ import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -38,7 +36,10 @@ public class BookingService {
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
     }
-
+    public Booking getBookingById(Long id) {
+        return bookingRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+    }
     public Booking createBooking(Booking booking) {
         List<Booking> existingBookings =
                 bookingRepository.findByRoomIdAndBookingDateAndStatus(
@@ -73,30 +74,53 @@ public class BookingService {
     }
 
     public void deleteBooking(Long id) {
-        if (!bookingRepository.existsById(id)) {
-            throw new RuntimeException("Booking not found");
-        }
+        bookingRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
         bookingRepository.deleteById(id);
     }
 
+
+    @Retry(name = "roomService")
+    @CircuitBreaker(name = "roomService", fallbackMethod = "availabilityFallback")
     public boolean isRoomAvailable(Long roomId, String range) {
+
+
+        String url = "http://localhost:8081/rooms/" + roomId;
+
+        try {
+            restTemplate.getForObject(url, String.class);
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound ex) {
+            throw new IllegalArgumentException("Room does not exist");
+        }
+
+
         TimeRange requestedRange = parseRange(range);
-        List<Booking> bookings = bookingRepository.findAll();
+
+        List<Booking> bookings =
+                bookingRepository.findByRoomIdAndBookingDateAndStatus(
+                        roomId,
+                        LocalDate.now(),
+                        BookingStatus.CONFIRMED
+                );
 
         for (Booking booking : bookings) {
-            if (booking.getRoomId().equals(roomId)) {
-                TimeRange existingRange = parseRange(booking.getBookingTime());
+            TimeRange existingRange = parseRange(booking.getBookingTime());
 
-                if (overlaps(existingRange, requestedRange)) {
-                    return false;
-                }
+            if (overlaps(existingRange, requestedRange)) {
+                return false;
             }
         }
 
         return true;
     }
 
+    public boolean availabilityFallback(Long roomId, String range, Exception ex) {
+        log.error("Room service unavailable while checking availability", ex);
+        throw new RuntimeException("Room service unavailable");
+    }
+
+ 
     @Retry(name = "roomService")
     @CircuitBreaker(name = "roomService", fallbackMethod = "fallbackRoomService")
     @TimeLimiter(name = "roomService")
@@ -118,7 +142,8 @@ public class BookingService {
             return response.getBody();
         });
     }
-    public CompletableFuture<String> fallbackRoomService(Long roomId, Exception ex) {
+
+    public CompletableFuture<String> fallbackRoomService(Long roomId, String token, Exception ex) {
         log.error("Room service failed or timed out for roomId={}", roomId, ex);
         return CompletableFuture.completedFuture(
                 "Room service is slow or unavailable. Please try again later."

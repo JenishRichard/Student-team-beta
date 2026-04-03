@@ -2,6 +2,7 @@ package com.classroom.booking_service.controller;
 
 import com.classroom.booking_service.entity.Booking;
 import com.classroom.booking_service.service.BookingService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,39 +21,52 @@ public class BookingController {
     }
 
     @GetMapping
-    public List<Booking> getAllBookings() {
-        return service.getAllBookings();
+    public ResponseEntity<List<Booking>> getAllBookings() {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(service.getAllBookings());
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<Booking> getBookingById(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(service.getBookingById(id));
     }
 
     @PostMapping
-    public Booking createBooking(@RequestBody Booking booking) {
-        return service.createBooking(booking);
+    public ResponseEntity<Booking> createBooking(@RequestBody Booking booking) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.createBooking(booking));
     }
 
     @PutMapping("/{id}/cancel")
-    public Booking cancelBooking(@PathVariable Long id) {
-        return service.cancelBooking(id);
+    public ResponseEntity<Booking> cancelBooking(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(service.cancelBooking(id));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteBooking(@PathVariable Long id) {
         service.deleteBooking(id);
-        return ResponseEntity.ok("Booking deleted successfully");
+        return ResponseEntity.status(HttpStatus.OK)
+                .body("Booking deleted successfully");
     }
 
     @GetMapping("/availability")
-    public Map<String, Boolean> checkAvailability(
+    public ResponseEntity<Map<String, Boolean>> checkAvailability(
             @RequestParam Long roomId,
             @RequestParam String timeRange) {
 
         boolean available = service.isRoomAvailable(roomId, timeRange);
-        return Map.of("available", available);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(Map.of("available", available));
     }
 
     @GetMapping("/room-details/{roomId}")
-    public CompletableFuture<String> getRoomDetails(
+    public ResponseEntity<CompletableFuture<String>> getRoomDetails(
             @PathVariable Long roomId,
             @RequestHeader("Authorization") String token) {
-        return service.getRoomDetails(roomId, token);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(service.getRoomDetails(roomId, token));
     }
-}  
+}

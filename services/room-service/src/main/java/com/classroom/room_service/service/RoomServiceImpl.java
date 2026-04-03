@@ -70,7 +70,7 @@ public class RoomServiceImpl implements RoomService{
     }
 
 	@Override
-	public String getRoomDetails(Long roomId, String token) {
+	public String getRoomDetails(Long roomId, String token) { 
 		return null;
 	}
 }

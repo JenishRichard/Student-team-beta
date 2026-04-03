@@ -7,8 +7,14 @@ import org.springframework.web.bind.annotation.*;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BookingConflictException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleBookingConflict(BookingConflictException ex) {
+        return ex.getMessage();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleIllegalArgument(IllegalArgumentException ex) {
         return ex.getMessage();
     }
 }
