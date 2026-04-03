@@ -162,7 +162,6 @@ pipeline {
             pkill -f 'room-service-0.0.1-SNAPSHOT.jar' || true
             pkill -f 'booking-service-0.0.1-SNAPSHOT.jar' || true
             '''
-
             junit testResults: 'services/**/target/surefire-reports/*.xml, services/karate-tests/target/surefire-reports/*.xml', allowEmptyResults: true
             archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, services/karate-tests/target/karate-reports/**, services/karate-tests/target/surefire-reports/*.xml, *.log', fingerprint: true
 

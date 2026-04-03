@@ -48,7 +48,6 @@ public class RoomController {
         log.info("TOKEN IN CONTROLLER: {}", token);
         return roomService.getRoomDetails(roomId, token);
     }
-
     @GetMapping("/{id}")
     public ResponseEntity<Room> getRoomById(@PathVariable Long id) {
         Room room = roomService.getRoomById(id);

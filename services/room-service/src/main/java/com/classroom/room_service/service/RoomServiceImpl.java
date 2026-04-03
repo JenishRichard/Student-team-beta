@@ -9,7 +9,6 @@ import java.util.List;
 
 @Service
 public class RoomServiceImpl implements RoomService{
-
     private static final String ROOM_NOT_FOUND_MESSAGE = "Room not found";
 
     private final RoomRepository roomRepository;
