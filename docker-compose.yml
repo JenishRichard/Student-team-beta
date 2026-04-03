@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   room-service:
     image: sanketshetty23/room-service:latest
