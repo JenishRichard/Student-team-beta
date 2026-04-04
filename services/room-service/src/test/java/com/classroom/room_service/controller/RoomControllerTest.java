@@ -53,7 +53,6 @@ class RoomControllerTest {
         return room;
     }
 
-    // GET /rooms
     @Test
     void getAllRooms_shouldReturnOk() throws Exception {
 
@@ -66,7 +65,6 @@ class RoomControllerTest {
                 .andExpect(jsonPath("$[0].roomNumber").value("A101"));
     }
 
-    // GET /rooms?roomNumber=A101
     @Test
     void filterRooms_shouldReturnFilteredRooms() throws Exception {
 
@@ -81,7 +79,6 @@ class RoomControllerTest {
                 .andExpect(jsonPath("$[0].roomNumber").value("A101"));
     }
 
-    // GET /rooms/{id}
     @Test
     void getRoomById_shouldReturnRoom() throws Exception {
 
@@ -94,7 +91,6 @@ class RoomControllerTest {
                 .andExpect(jsonPath("$.roomNumber").value("A101"));
     }
 
-    // GET /rooms/{id} invalid
     @Test
     void getRoomById_shouldReturn404() throws Exception {
 
@@ -105,7 +101,6 @@ class RoomControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // POST /rooms
     @Test
     void createRoom_shouldReturn201() throws Exception {
 
@@ -120,7 +115,6 @@ class RoomControllerTest {
                 .andExpect(jsonPath("$.roomNumber").value("A101"));
     }
 
-    // PUT /rooms/{id}
     @Test
     void updateRoom_shouldReturnUpdatedRoom() throws Exception {
 
@@ -135,7 +129,6 @@ class RoomControllerTest {
                 .andExpect(jsonPath("$.roomNumber").value("A101"));
     }
 
-    // DELETE /rooms/{id}
     @Test
     void deleteRoom_shouldReturn204() throws Exception {
 
@@ -145,7 +138,6 @@ class RoomControllerTest {
                 .andExpect(status().isNoContent());
     }
 
-    // DELETE invalid
     @Test
     void deleteRoom_shouldReturn404() throws Exception {
 
