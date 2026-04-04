@@ -30,6 +30,15 @@ management:
       exposure:
         include: health,info
 
+jwt:
+  secret: ${JWT_SECRET:booking-service-secret-key-booking-service-secret-key}
+  expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+
+app:
+  security:
+    username: ${APP_SECURITY_USERNAME:booking-user}
+    password: ${APP_SECURITY_PASSWORD:booking-pass}
+
 resilience4j:
   circuitbreaker:
     instances:

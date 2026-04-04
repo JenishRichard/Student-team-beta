@@ -1,12 +1,14 @@
 package com.classroom.booking_service.controller;
 
 import com.classroom.booking_service.entity.Booking;
+import com.classroom.booking_service.security.JwtService;
 import com.classroom.booking_service.service.BookingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -27,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         controllers = BookingController.class,
         excludeAutoConfiguration = {SecurityAutoConfiguration.class}
 )
+@AutoConfigureMockMvc(addFilters = false)
 @TestPropertySource(properties = {
         "spring.cloud.config.enabled=false",
         "spring.config.import=",
@@ -39,6 +42,9 @@ class BookingControllerTest {
 
     @MockBean
     private BookingService bookingService;
+
+    @MockBean
+    private JwtService jwtService;
 
     @Autowired
     private ObjectMapper objectMapper;
