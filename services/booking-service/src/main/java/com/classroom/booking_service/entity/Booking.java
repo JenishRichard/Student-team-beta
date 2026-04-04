@@ -12,15 +12,13 @@ import java.time.LocalDate;
     )
 )
 public class Booking {
-
+	private String bookedBy;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "room_id")
     private Long roomId;
-
-    private String bookedBy;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
