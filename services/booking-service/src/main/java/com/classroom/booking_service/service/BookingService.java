@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
+import com.classroom.booking_service.exception.RoomServiceUnavailableException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 public class BookingService {
 
     private static final Logger log = LoggerFactory.getLogger(BookingService.class);
-
+    private static final String BOOKING_NOT_FOUND = "Booking not found";
     private final BookingRepository bookingRepository;
     private final RestTemplate restTemplate;
 
@@ -38,7 +38,7 @@ public class BookingService {
     }
     public Booking getBookingById(Long id) {
         return bookingRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+                .orElseThrow(() -> new IllegalArgumentException(BOOKING_NOT_FOUND));
     }
     public Booking createBooking(Booking booking) {
         List<Booking> existingBookings =
@@ -67,7 +67,7 @@ public class BookingService {
 
     public Booking cancelBooking(Long id) {
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+                .orElseThrow(() -> new IllegalArgumentException(BOOKING_NOT_FOUND));
 
         booking.setStatus(BookingStatus.CANCELLED);
         return bookingRepository.save(booking);
@@ -75,7 +75,7 @@ public class BookingService {
 
     public void deleteBooking(Long id) {
         bookingRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+                .orElseThrow(() -> new IllegalArgumentException(BOOKING_NOT_FOUND));
 
         bookingRepository.deleteById(id);
     }
@@ -116,8 +116,8 @@ public class BookingService {
     }
 
     public boolean availabilityFallback(Long roomId, String range, Exception ex) {
-        log.error("Room service unavailable while checking availability", ex);
-        throw new RuntimeException("Room service unavailable");
+        log.error("Room service unavailable for roomId={} and range={}", roomId, range, ex);
+        throw new RoomServiceUnavailableException("Room service unavailable");
     }
 
  
@@ -144,12 +144,12 @@ public class BookingService {
     }
 
     public CompletableFuture<String> fallbackRoomService(Long roomId, String token, Exception ex) {
-        log.error("Room service failed or timed out for roomId={}", roomId, ex);
+        log.error("Room service failed for roomId={} (token hidden)", roomId, ex);
+
         return CompletableFuture.completedFuture(
                 "Room service is slow or unavailable. Please try again later."
         );
     }
-
     private TimeRange parseRange(String range) {
         try {
             String[] parts = range.split("-");
