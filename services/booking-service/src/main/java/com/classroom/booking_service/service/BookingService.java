@@ -144,7 +144,10 @@ public class BookingService {
     }
 
     public CompletableFuture<String> fallbackRoomService(Long roomId, String token, Exception ex) {
-        log.error("Room service failed for roomId={} (token hidden)", roomId, ex);
+    	log.error("Room service failed for roomId={}, authHeaderPresent={}",
+    	        roomId,
+    	        token != null && !token.isBlank(),
+    	        ex);
 
         return CompletableFuture.completedFuture(
                 "Room service is slow or unavailable. Please try again later."
