@@ -12,6 +12,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -31,6 +34,9 @@ class AuthServiceTest {
 
   @Mock
   private UserAccountRepository repository;
+
+  @Mock
+  private AuthenticationManager authenticationManager;
 
   @Mock
   private PasswordEncoder encoder;
@@ -123,7 +129,8 @@ class AuthServiceTest {
   void login_shouldReturnBearerTokenForValidCredentials() {
     UserAccount user = user("ADMIN001", "admin@tus.ie", "HASHED", "ADMIN", UserStatus.ACTIVE);
     when(repository.findByEmailIgnoreCase("admin@tus.ie")).thenReturn(Optional.of(user));
-    when(encoder.matches("Admin@123", "HASHED")).thenReturn(true);
+    when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+        .thenReturn(new UsernamePasswordAuthenticationToken("admin@tus.ie", null, List.of()));
     when(jwtService.generateAccessToken("admin@tus.ie", List.of("ADMIN"))).thenReturn("jwt-token");
 
     AuthDtos.AuthResponse response = authService.login(new AuthDtos.LoginRequest("admin@tus.ie", "Admin@123"));
@@ -135,9 +142,8 @@ class AuthServiceTest {
 
   @Test
   void login_shouldThrowWhenPasswordInvalid() {
-    UserAccount user = user("ADMIN001", "admin@tus.ie", "HASHED", "ADMIN", UserStatus.ACTIVE);
-    when(repository.findByEmailIgnoreCase("admin@tus.ie")).thenReturn(Optional.of(user));
-    when(encoder.matches("wrong", "HASHED")).thenReturn(false);
+    when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+        .thenThrow(new org.springframework.security.authentication.BadCredentialsException("Bad credentials"));
 
     InvalidCredentialsException ex = assertThrows(
         InvalidCredentialsException.class,
@@ -145,6 +151,19 @@ class AuthServiceTest {
     );
 
     assertEquals("Invalid credentials", ex.getMessage());
+  }
+
+  @Test
+  void login_shouldThrowWhenUserIsNotActive() {
+    when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+        .thenThrow(new DisabledException("User is disabled"));
+
+    InvalidCredentialsException ex = assertThrows(
+        InvalidCredentialsException.class,
+        () -> authService.login(new AuthDtos.LoginRequest("invited@tus.ie", "Invite@123"))
+    );
+
+    assertEquals("User account is not active", ex.getMessage());
   }
 
   @Test
