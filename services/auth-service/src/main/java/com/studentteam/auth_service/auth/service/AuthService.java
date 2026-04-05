@@ -6,6 +6,10 @@ import com.studentteam.auth_service.auth.entity.UserStatus;
 import com.studentteam.auth_service.auth.exception.InvalidCredentialsException;
 import com.studentteam.auth_service.auth.jwt.JwtService;
 import com.studentteam.auth_service.auth.repository.UserAccountRepository;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +26,18 @@ public class AuthService {
   private static final List<String> ALLOWED_ROLES = List.of("SUPER_ADMIN", "ADMIN", "TEACHER", "STUDENT");
 
   private final UserAccountRepository repository;
+  private final AuthenticationManager authenticationManager;
   private final PasswordEncoder encoder;
   private final JwtService jwtService;
 
-  public AuthService(UserAccountRepository repository, PasswordEncoder encoder, JwtService jwtService) {
+  public AuthService(
+      UserAccountRepository repository,
+      AuthenticationManager authenticationManager,
+      PasswordEncoder encoder,
+      JwtService jwtService
+  ) {
     this.repository = repository;
+    this.authenticationManager = authenticationManager;
     this.encoder = encoder;
     this.jwtService = jwtService;
   }
@@ -107,12 +118,10 @@ public class AuthService {
   }
 
   public AuthDtos.AuthResponse login(AuthDtos.LoginRequest req) {
-    UserAccount user = repository.findByEmailIgnoreCase(req.email())
+    String normalizedEmail = normalizeEmail(req.email());
+    authenticate(normalizedEmail, req.password());
+    UserAccount user = repository.findByEmailIgnoreCase(normalizedEmail)
         .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
-
-    if (!encoder.matches(req.password(), user.getPasswordHash())) {
-      throw new InvalidCredentialsException("Invalid credentials");
-    }
 
     String token = jwtService.generateAccessToken(user.getEmail(), List.of(user.getRole()));
     return new AuthDtos.AuthResponse(token, "Bearer");
@@ -132,6 +141,16 @@ public class AuthService {
     String normalized = email.trim().toLowerCase(Locale.ROOT);
     if (normalized.isEmpty()) throw new IllegalArgumentException("Email is required");
     return normalized;
+  }
+
+  private void authenticate(String email, String password) {
+    try {
+      authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+    } catch (DisabledException ex) {
+      throw new InvalidCredentialsException("User account is not active");
+    } catch (AuthenticationException ex) {
+      throw new InvalidCredentialsException("Invalid credentials");
+    }
   }
 
   private String normalizeRole(String role) {
