@@ -18,6 +18,10 @@ import java.util.List;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final String PROTECTED_PATH_PREFIX = "/rooms";
+
     private final JwtService jwtService;
 
     public JwtAuthenticationFilter(JwtService jwtService) {
@@ -26,42 +30,63 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        return !path.startsWith("/rooms");
+        return !isProtectedPath(request.getRequestURI());
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-
-        String auth = request.getHeader("Authorization");
-        if (auth == null || !auth.startsWith("Bearer ")) {
-            writeUnauthorized(response, "Missing Bearer token");
+        String token = resolveBearerToken(request);
+        if (token == null) {
+            writeUnauthorized(response, unauthorizedBody("Missing Bearer token"));
             return;
         }
 
-        String token = auth.substring("Bearer ".length());
         try {
-            Claims claims = jwtService.validate(token);
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(claims.getSubject(), null, List.of());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder.getContext().setAuthentication(buildAuthentication(token));
             filterChain.doFilter(request, response);
         } catch (JwtException | IllegalArgumentException ex) {
-            writeUnauthorized(response, "Invalid token");
+            writeUnauthorized(response, unauthorizedBody("Invalid token"));
         } finally {
             SecurityContextHolder.clearContext();
         }
     }
 
-    private void writeUnauthorized(HttpServletResponse response, String message) throws IOException {
+    private boolean isProtectedPath(String requestUri) {
+        return requestUri != null && requestUri.startsWith(PROTECTED_PATH_PREFIX);
+    }
+
+    private String resolveBearerToken(HttpServletRequest request) {
+        String authorizationValue = request.getHeader(AUTHORIZATION_HEADER);
+        if (authorizationValue == null || authorizationValue.isBlank()) {
+            return null;
+        }
+        if (!authorizationValue.regionMatches(true, 0, BEARER_PREFIX, 0, BEARER_PREFIX.length())) {
+            return null;
+        }
+        return authorizationValue.substring(BEARER_PREFIX.length()).trim();
+    }
+
+    private UsernamePasswordAuthenticationToken buildAuthentication(String token) {
+        Claims claims = jwtService.validate(token);
+        return new UsernamePasswordAuthenticationToken(claims.getSubject(), null, List.of());
+    }
+
+    private String unauthorizedBody(String message) {
+        return """
+                {"error":"Unauthorized","message":"%s"}
+                """.formatted(message).trim();
+    }
+
+    private void writeUnauthorized(HttpServletResponse response, String body) throws IOException {
         if (response.isCommitted()) {
             return;
         }
+
         response.resetBuffer();
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"" + message + "\"}");
+        response.getWriter().write(body);
         response.flushBuffer();
     }
 }
