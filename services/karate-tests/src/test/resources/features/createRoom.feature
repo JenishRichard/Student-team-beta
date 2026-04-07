@@ -1,5 +1,9 @@
 Feature: Create room for reuse
 
+Background:
+    * def authResult = callonce read('classpath:features/auth.feature')
+    * def token = authResult.token
+
 Scenario: Create room
 
     Given url roomServiceUrl + '/rooms'
