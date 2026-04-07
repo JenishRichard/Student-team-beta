@@ -1,5 +1,6 @@
 package com.classroom.booking_service.service;
 
+import com.classroom.booking_service.dto.BookingStatusResponse;
 import com.classroom.booking_service.entity.Booking;
 import com.classroom.booking_service.entity.BookingStatus;
 import com.classroom.booking_service.exception.BookingConflictException;
@@ -219,6 +220,35 @@ class BookingServiceTest {
                 () -> bookingService.availabilityFallback(1L, "10:00-12:00", new RuntimeException()));
 
         assertEquals("Room service unavailable", ex.getMessage());
+    }
+
+    @Test
+    void testGetRoomBookingStatusBooked() {
+        Booking booking = new Booking();
+        booking.setRoomId(101L);
+        booking.setBookingDate(LocalDate.now());
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        when(bookingRepository.findByRoomIdAndBookingDateAndStatus(
+                101L, LocalDate.now(), BookingStatus.CONFIRMED))
+                .thenReturn(List.of(booking));
+
+        BookingStatusResponse response = bookingService.getRoomBookingStatus(101L);
+
+        assertTrue(response.booked());
+        assertEquals("BOOKED", response.bookingStatus());
+    }
+
+    @Test
+    void testGetRoomBookingStatusAvailable() {
+        when(bookingRepository.findByRoomIdAndBookingDateAndStatus(
+                101L, LocalDate.now(), BookingStatus.CONFIRMED))
+                .thenReturn(List.of());
+
+        BookingStatusResponse response = bookingService.getRoomBookingStatus(101L);
+
+        assertFalse(response.booked());
+        assertEquals("AVAILABLE", response.bookingStatus());
     }
 
     @Test

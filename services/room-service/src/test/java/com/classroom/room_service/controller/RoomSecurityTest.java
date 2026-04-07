@@ -12,12 +12,17 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(RoomController.class)
@@ -67,5 +72,24 @@ class RoomSecurityTest {
         mockMvc.perform(get("/rooms").header("Authorization", "Bearer valid-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].roomNumber").value("A101"));
+    }
+
+    @Test
+    void shouldAllowRoomDetailsEndpointWithValidToken() throws Exception {
+        when(jwtService.validate("valid-token")).thenReturn(new io.jsonwebtoken.impl.DefaultClaims());
+        when(roomService.getRoomDetails(26L, "Bearer valid-token"))
+                .thenReturn(CompletableFuture.completedFuture(new com.classroom.room_service.dto.RoomDetailsResponse(
+                        26L, "Z101", "Engineering and Science", 40, "LAB", true, true, "BOOKED", null
+                )));
+
+        MvcResult result = mockMvc.perform(get("/rooms/room-details/26")
+                        .header("Authorization", "Bearer valid-token"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(result))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bookingStatus").value("BOOKED"))
+                .andExpect(jsonPath("$.booked").value(true));
     }
 }

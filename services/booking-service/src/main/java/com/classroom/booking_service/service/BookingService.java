@@ -1,5 +1,6 @@
 package com.classroom.booking_service.service;
 
+import com.classroom.booking_service.dto.BookingStatusResponse;
 import com.classroom.booking_service.entity.Booking;
 import com.classroom.booking_service.entity.BookingStatus;
 import com.classroom.booking_service.entity.TimeRange;
@@ -78,6 +79,16 @@ public class BookingService {
                 .orElseThrow(() -> new IllegalArgumentException(BOOKING_NOT_FOUND));
 
         bookingRepository.deleteById(id);
+    }
+
+    public BookingStatusResponse getRoomBookingStatus(Long roomId) {
+        boolean booked = !bookingRepository.findByRoomIdAndBookingDateAndStatus(
+                roomId,
+                LocalDate.now(),
+                BookingStatus.CONFIRMED
+        ).isEmpty();
+
+        return new BookingStatusResponse(roomId, booked, booked ? "BOOKED" : "AVAILABLE");
     }
 
 

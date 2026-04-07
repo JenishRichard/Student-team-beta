@@ -29,6 +29,19 @@
 	<properties>
 		<java.version>17</java.version>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>2025.0.1</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.flywaydb</groupId>
@@ -55,6 +68,31 @@
 			<artifactId>jjwt-api</artifactId>
 			<version>0.11.5</version>
 		</dependency>
+		<!-- Circuit Breaker (Spring Cloud wrapper) -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+		</dependency>
+
+		<!-- Retry -->
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-retry</artifactId>
+		</dependency>
+
+		<!-- Spring Boot integration (VERY IMPORTANT) -->
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-spring-boot3</artifactId>
+		</dependency>
+
+		<!-- TimeLimiter (you already added) -->
+		<dependency>
+			<groupId>io.github.resilience4j</groupId>
+			<artifactId>resilience4j-timelimiter</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-impl</artifactId>
@@ -93,11 +131,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
-		<dependency>
-    <groupId>io.github.resilience4j</groupId>
-    <artifactId>resilience4j-timelimiter</artifactId>
-    <version>2.2.0</version>
-</dependency>
 	</dependencies>
 	
 

@@ -34,6 +34,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilterAsyncDispatch() {
+        return false;
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String token = resolveBearerToken(request);
@@ -47,8 +52,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (JwtException | IllegalArgumentException ex) {
             writeUnauthorized(response, unauthorizedBody("Invalid token"));
-        } finally {
-            SecurityContextHolder.clearContext();
         }
     }
 

@@ -1,5 +1,6 @@
 package com.classroom.booking_service.controller;
 
+import com.classroom.booking_service.dto.BookingStatusResponse;
 import com.classroom.booking_service.entity.Booking;
 import com.classroom.booking_service.service.BookingService;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,12 @@ public class BookingController {
     public ResponseEntity<Booking> getBookingById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(service.getBookingById(id));
+    }
+
+    @GetMapping("/rooms/{roomId}/status")
+    public ResponseEntity<BookingStatusResponse> getRoomBookingStatus(@PathVariable Long roomId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(service.getRoomBookingStatus(roomId));
     }
 
     @PostMapping
