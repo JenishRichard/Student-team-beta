@@ -1,5 +1,7 @@
 package com.classroom.room_service.service;
 
+import com.classroom.room_service.dto.BookingStatusResponse;
+import com.classroom.room_service.dto.RoomDetailsResponse;
 import com.classroom.room_service.entity.Room;
 import com.classroom.room_service.exception.ResourceNotFoundException;
 import com.classroom.room_service.repository.RoomRepository;
@@ -7,12 +9,16 @@ import com.classroom.room_service.repository.RoomRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,8 +30,15 @@ class RoomServiceTest {
     @Mock
     private RoomRepository roomRepository;
 
-    @InjectMocks
+    @Mock
+    private RestTemplate restTemplate;
+
     private RoomServiceImpl roomService;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        roomService = new RoomServiceImpl(roomRepository, restTemplate, 0, "http://localhost:8083");
+    }
 
     private Room createRoom() {
         Room room = new Room();
@@ -152,5 +165,36 @@ class RoomServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getRoomNumber()).isEqualTo("A101");
+    }
+
+    @Test
+    void getRoomDetails_shouldReturnDetails() {
+        Room room = createRoom();
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                any(HttpEntity.class),
+                eq(BookingStatusResponse.class)
+        )).thenReturn(ResponseEntity.ok(new BookingStatusResponse(1L, true, "BOOKED")));
+
+        CompletableFuture<RoomDetailsResponse> result = roomService.getRoomDetails(1L, "Bearer token");
+
+        assertThat(result.join().bookingStatus()).isEqualTo("BOOKED");
+        assertThat(result.join().booked()).isTrue();
+        assertThat(result.join().roomNumber()).isEqualTo("A101");
+    }
+
+    @Test
+    void fallbackRoomDetails_shouldReturnFallbackMessage() {
+        Room room = createRoom();
+        when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
+
+        CompletableFuture<RoomDetailsResponse> result =
+                roomService.fallbackRoomDetails(1L, "Bearer token", new RuntimeException("boom"));
+
+        assertThat(result.join().bookingStatus()).isEqualTo("UNKNOWN");
+        assertThat(result.join().bookingMessage()).isEqualTo("Booking service unavailable");
+        assertThat(result.join().roomNumber()).isEqualTo("A101");
     }
 }

@@ -1,5 +1,6 @@
 package com.classroom.room_service.controller;
 
+import com.classroom.room_service.dto.RoomDetailsResponse;
 import com.classroom.room_service.entity.Room;
 
 import com.classroom.room_service.service.RoomService;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +44,7 @@ public class RoomController {
     }
 
     @GetMapping("/room-details/{roomId}")
-    public String getRoomDetails(
+    public CompletableFuture<RoomDetailsResponse> getRoomDetails(
             @PathVariable Long roomId,
             @RequestHeader("Authorization") String token) {
         log.info("TOKEN IN CONTROLLER: {}", token);

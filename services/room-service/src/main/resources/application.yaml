@@ -26,9 +26,30 @@ management:
       exposure:
         include: health,info
 
+resilience4j:
+  retry:
+    instances:
+      roomServiceRetry:
+        max-attempts: 3
+        wait-duration: 200ms
+  circuitbreaker:
+    instances:
+      roomServiceCB:
+        sliding-window-size: 5
+        minimum-number-of-calls: 2
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 5s
+  timelimiter:
+    instances:
+      roomServiceTimeout:
+        timeout-duration: 1s
+
 jwt:
   secret: ${JWT_SECRET:CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS_123456}
 
 #Added for timeout testing
 custom:
   delay-ms: 0
+
+booking-service:
+  base-url: ${BOOKING_SERVICE_URL:http://localhost:8083}

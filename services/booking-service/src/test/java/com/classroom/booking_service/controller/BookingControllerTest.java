@@ -73,6 +73,18 @@ class BookingControllerTest {
     }
 
     @Test
+    void testGetRoomBookingStatus() throws Exception {
+        Mockito.when(bookingService.getRoomBookingStatus(101L))
+                .thenReturn(new com.classroom.booking_service.dto.BookingStatusResponse(101L, true, "BOOKED"));
+
+        mockMvc.perform(get("/bookings/rooms/101/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.roomId").value(101))
+                .andExpect(jsonPath("$.booked").value(true))
+                .andExpect(jsonPath("$.bookingStatus").value("BOOKED"));
+    }
+
+    @Test
     void testCreateBooking() throws Exception {
         Booking booking = new Booking();
 
