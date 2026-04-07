@@ -1,9 +1,5 @@
 Feature: Create booking for reuse
 
-Background:
-    * def authResult = callonce read('classpath:features/auth.feature')
-    * def token = authResult.token
-
 Scenario: Create booking
 
     Given url bookingServiceUrl + '/bookings'
@@ -19,6 +15,6 @@ Scenario: Create booking
     }
     """
     When method POST
-    Then status 200
+    Then status 201
     * def bookingId = response.id
     * def bookedBy = response.bookedBy
