@@ -48,4 +48,59 @@ Scenario: Delete room
     Given url roomServiceUrl + '/rooms/' + roomId
     And header Authorization = 'Bearer ' + token
     When method DELETE
-    Then status 204   
+    Then status 204
+
+Scenario: Get room with invalid id
+    Given url roomServiceUrl + '/rooms/1'
+    And header Authorization = 'Bearer ' + token
+    When method GET
+    Then status 404
+
+Scenario: Delete room with invalid id
+    Given url roomServiceUrl + '/rooms/1'
+    And header Authorization = 'Bearer ' + token
+    When method DELETE
+    Then status 404
+
+Scenario: Access rooms without token
+    Given url roomServiceUrl + '/rooms'
+    When method GET
+    Then status 401
+
+Scenario: Access rooms with invalid token
+    Given url roomServiceUrl + '/rooms'
+    And header Authorization = 'Bearer invalid-token'
+    When method GET
+    Then status 401
+
+Scenario: Create room with missing required field
+    Given url roomServiceUrl + '/rooms'
+    And header Authorization = 'Bearer ' + token
+    And request
+    """
+    {
+      "building": "Engineering and Science",
+      "capacity": 50,
+      "type": "CLASSROOM",
+      "available": 1
+    }
+    """
+    When method POST
+    Then status 500
+
+Scenario: Create room with existing room number
+
+    Given url roomServiceUrl + '/rooms'
+    And header Authorization = 'Bearer ' + token
+    And request
+    """
+    {
+      "roomNumber": "X102",
+      "building": "Engineering and Science",
+      "capacity": 50,
+      "type": "SEMINAR",
+      "available": 1
+    }
+    """
+    When method POST
+    Then status 500

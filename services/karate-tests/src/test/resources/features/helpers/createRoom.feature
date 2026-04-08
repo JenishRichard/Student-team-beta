@@ -23,4 +23,4 @@ Scenario: Create room
     When method POST
     Then status 201
     * def roomId = response.id
-    * def roomNumber = response.roomNumber
+    * def roomNumber = response.roomNumber    

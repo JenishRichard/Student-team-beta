@@ -35,4 +35,52 @@ Scenario: Cancel booking
     Given url bookingServiceUrl + '/bookings/' + bookingId
     And header Authorization = 'Bearer ' + token
     When method DELETE
-    Then status 200   
+    Then status 200
+
+ Scenario: Get booking with invalid id
+    Given url bookingServiceUrl + '/bookings/1'
+    And header Authorization = 'Bearer ' + token
+    When method GET
+    Then status 400
+	
+Scenario: Delete booking with invalid id
+    Given url bookingServiceUrl + '/bookings/1'
+    And header Authorization = 'Bearer ' + token
+    When method DELETE
+    Then status 400
+	
+Scenario: Cancel booking with invalid id
+    Given url bookingServiceUrl + '/bookings/1/cancel'
+    And header Authorization = 'Bearer ' + token
+    When method PUT
+    Then status 400
+
+Scenario: Access bookings without token
+    Given url bookingServiceUrl + '/bookings'
+    When method GET
+    Then status 401
+
+Scenario: Access bookings with invalid token
+    Given url bookingServiceUrl + '/bookings'
+    And header Authorization = 'Bearer invalid-token'
+    When method GET
+    Then status 401
+
+Scenario: Create duplicate booking for same slot
+
+    Given url bookingServiceUrl + '/bookings'
+    And header Authorization = 'Bearer ' + token
+    And request
+    """
+    {
+		"bookedBy": "teacher@test.com",
+		"id": 11,
+		"roomId": 18,
+		"bookedByIdentity": "TEACHER",
+		"bookingDate": "2026-03-10",
+		"bookingTime": "10:00-12:00",
+		"status": "CONFIRMED"
+    }
+    """
+    When method POST
+    Then status 400   
