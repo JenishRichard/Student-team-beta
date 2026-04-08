@@ -4,11 +4,6 @@ class TestRunner {
 
     @Karate.Test
     Karate runRoomTests() {
-        return Karate.run("classpath:features/roomService.feature").relativeTo(getClass());
-    }
-
-    @Karate.Test
-    Karate runBookingTests() {
-        return Karate.run("classpath:features/bookingService.feature").relativeTo(getClass());
+        return Karate.run("features/roomService", "features/bookingService").relativeTo(getClass());
     }
 }
