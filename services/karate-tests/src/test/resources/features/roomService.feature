@@ -1,10 +1,10 @@
 Feature: Room Service API Tests
 
 Background:
-    * def authResult = callonce read('classpath:features/auth.feature')
+    * def authResult = callonce read('classpath:features/helpers/auth.feature')
     * def token = authResult.token
 
-    * def roomResult = callonce read('classpath:features/createRoom.feature')
+    * def roomResult = callonce read('classpath:features/helpers/createRoom.feature')
     * def roomId = roomResult.roomId
     * def roomNumber = roomResult.roomNumber
     

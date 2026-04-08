@@ -1,10 +1,10 @@
 Feature: Booking Service API Tests
 
 Background:
-    * def authResult = callonce read('classpath:features/auth.feature')
+    * def authResult = callonce read('classpath:features/helpers/auth.feature')
     * def token = authResult.token
 
-    * def bookingResult = callonce read('classpath:features/createBooking.feature')
+    * def bookingResult = callonce read('classpath:features/helpers/createBooking.feature')
     * def bookingId = bookingResult.bookingId
     * def bookedBy = bookingResult.bookedBy
 

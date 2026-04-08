@@ -1,7 +1,7 @@
 Feature: Create booking for reuse
 
 Background:
-    * def authResult = callonce read('classpath:features/auth.feature')
+    * def authResult = callonce read('classpath:features/helpers/auth.feature')
     * def token = authResult.token
 
 Scenario: Create booking

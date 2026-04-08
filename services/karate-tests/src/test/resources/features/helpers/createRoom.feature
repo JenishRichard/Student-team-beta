@@ -1,17 +1,19 @@
 Feature: Create room for reuse
 
 Background:
-    * def authResult = callonce read('classpath:features/auth.feature')
+    * def authResult = callonce read('classpath:features/helpers/auth.feature')
     * def token = authResult.token
 
 Scenario: Create room
+
+    * def uniqueRoomNumber = 'TEST' + java.lang.System.currentTimeMillis()
 
     Given url roomServiceUrl + '/rooms'
     And header Authorization = 'Bearer ' + token
     And request
     """
     {
-      "roomNumber": "TEST1",
+      "roomNumber": "#(uniqueRoomNumber)",
       "building": "Engineering Block",
       "capacity": 40,
       "type": "CLASSROOM",
