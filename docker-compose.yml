@@ -20,3 +20,4 @@ services:
       DB_PORT: 3306
       DB_USER: admin
       DB_PASSWORD: admin123
+      ROOM_SERVICE_URL: room-service:8081

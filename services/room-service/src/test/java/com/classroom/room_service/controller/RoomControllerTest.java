@@ -13,8 +13,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -23,6 +25,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -89,6 +92,26 @@ class RoomControllerTest {
         mockMvc.perform(get("/rooms/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.roomNumber").value("A101"));
+    }
+
+    @Test
+    void getRoomDetails_shouldReturnDetails() throws Exception {
+
+        when(roomService.getRoomDetails(1L, "Bearer token"))
+                .thenReturn(CompletableFuture.completedFuture(new com.classroom.room_service.dto.RoomDetailsResponse(
+                        1L, "A101", "Main Block", 40, "LECTURE", true, true, "BOOKED", null
+                )));
+
+        MvcResult result = mockMvc.perform(get("/rooms/room-details/1")
+                        .header("Authorization", "Bearer token"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(result))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.roomNumber").value("A101"))
+                .andExpect(jsonPath("$.bookingStatus").value("BOOKED"))
+                .andExpect(jsonPath("$.booked").value(true));
     }
 
     @Test

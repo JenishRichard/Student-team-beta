@@ -1,7 +1,9 @@
 package com.classroom.room_service.service;
 
+import com.classroom.room_service.dto.RoomDetailsResponse;
 import com.classroom.room_service.entity.Room;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.List;
 
 public interface RoomService {
@@ -18,7 +20,7 @@ public interface RoomService {
 
     void deleteRoom(Long id);
 
-	String getRoomDetails(Long roomId, String token);
+	CompletableFuture<RoomDetailsResponse> getRoomDetails(Long roomId, String token);
 
 
 }

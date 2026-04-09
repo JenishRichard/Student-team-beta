@@ -65,4 +65,15 @@ class BookingSecurityTest {
         mockMvc.perform(get("/bookings").header("Authorization", "Bearer valid-token"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void shouldAllowBookingStatusEndpointWithValidToken() throws Exception {
+        when(jwtService.validate("valid-token")).thenReturn(new DefaultClaims());
+        when(bookingService.getRoomBookingStatus(26L))
+                .thenReturn(new com.classroom.booking_service.dto.BookingStatusResponse(26L, true, "BOOKED"));
+
+        mockMvc.perform(get("/bookings/rooms/26/status").header("Authorization", "Bearer valid-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bookingStatus").value("BOOKED"));
+    }
 }

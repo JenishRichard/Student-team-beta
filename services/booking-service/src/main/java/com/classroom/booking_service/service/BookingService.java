@@ -1,5 +1,6 @@
 package com.classroom.booking_service.service;
 
+import com.classroom.booking_service.dto.BookingStatusResponse;
 import com.classroom.booking_service.entity.Booking;
 import com.classroom.booking_service.entity.BookingStatus;
 import com.classroom.booking_service.entity.TimeRange;
@@ -19,6 +20,10 @@ import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import com.classroom.booking_service.client.RoomServiceClient;
+import com.classroom.booking_service.dto.BookingWithRoomResponse;
+import com.classroom.booking_service.dto.RoomResponse;
+import com.classroom.booking_service.exception.ResourceNotFoundException;
 
 @Service
 public class BookingService {
@@ -27,10 +32,12 @@ public class BookingService {
     private static final String BOOKING_NOT_FOUND = "Booking not found";
     private final BookingRepository bookingRepository;
     private final RestTemplate restTemplate;
+    private final RoomServiceClient roomServiceClient;
 
-    public BookingService(BookingRepository bookingRepository, RestTemplate restTemplate) {
+    public BookingService(BookingRepository bookingRepository, RestTemplate restTemplate, RoomServiceClient roomServiceClient) {
         this.bookingRepository = bookingRepository;
         this.restTemplate = restTemplate;
+         this.roomServiceClient = roomServiceClient;
     }
 
     public List<Booking> getAllBookings() {
@@ -78,6 +85,16 @@ public class BookingService {
                 .orElseThrow(() -> new IllegalArgumentException(BOOKING_NOT_FOUND));
 
         bookingRepository.deleteById(id);
+    }
+
+    public BookingStatusResponse getRoomBookingStatus(Long roomId) {
+        boolean booked = !bookingRepository.findByRoomIdAndBookingDateAndStatus(
+                roomId,
+                LocalDate.now(),
+                BookingStatus.CONFIRMED
+        ).isEmpty();
+
+        return new BookingStatusResponse(roomId, booked, booked ? "BOOKED" : "AVAILABLE");
     }
 
 
@@ -177,5 +194,27 @@ public class BookingService {
 
     private boolean overlaps(TimeRange a, TimeRange b) {
         return a.start().isBefore(b.end()) && b.start().isBefore(a.end());
+    }
+
+    public BookingWithRoomResponse getBookingWithRoom(Long id, String token) {
+
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("BOOKING_NOT_FOUND"));
+
+        // Using Feign instead of RestTemplate
+        RoomResponse room = roomServiceClient.getRoomById(booking.getRoomId(), token);
+
+        BookingWithRoomResponse response = new BookingWithRoomResponse();
+
+        response.setBookedBy(booking.getBookedBy());
+        response.setId(booking.getId());
+        response.setRoomId(booking.getRoomId());
+        response.setBookedByIdentity(booking.getBookedByIdentity());
+        response.setBookingDate(booking.getBookingDate().toString());
+        response.setBookingTime(booking.getBookingTime());
+        response.setStatus(booking.getStatus());
+        response.setRoom(room);
+
+        return response;
     }
 }
