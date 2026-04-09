@@ -26,9 +26,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AuthController.class)
+
 @AutoConfigureMockMvc(addFilters = false)
 @Import(AuthExceptionHandler.class)
+@WebMvcTest(controllers = AuthController.class, properties = {
+        "spring.cloud.config.enabled=false",
+        "spring.config.import=",
+        "jwt.secret=test-secret-key-at-least-32-characters",
+        "jwt.expiration-ms=3600000"
+})
 class AuthControllerTest {
 
   @Autowired

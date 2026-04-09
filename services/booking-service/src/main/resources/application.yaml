@@ -1,54 +1,9 @@
-server:
-  port: ${SERVER_PORT:8083}
-
 spring:
-  cloud:
-    config:
-      enabled: false
+  application:
+    name: booking-service
 
-  datasource:
-    url: jdbc:mysql://${DB_HOST:classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com}:${DB_PORT:3306}/booking_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: ${DB_USER:admin}
-    password: ${DB_PASSWORD:admin123}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+  config:
+    import: configserver:http://localhost:8888
 
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: true
-    open-in-view: false
-
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
-    baseline-version: 0
-    table: flyway_schema_history_booking_service
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-
-jwt:
-  secret: ${JWT_SECRET:CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS_123456}
-  expiration-ms: ${JWT_EXPIRATION_MS:3600000}
-
-app:
-  security:
-    username: ${APP_SECURITY_USERNAME:booking-user}
-    password: ${APP_SECURITY_PASSWORD:booking-pass}
-
-resilience4j:
-  circuitbreaker:
-    instances:
-      roomService:
-        failure-rate-threshold: 50
-        sliding-window-size: 5
-        wait-duration-in-open-state: 10s
-
-  retry:
-    instances:
-      roomService:
-        max-attempts: 3
-        wait-duration: 2s
+  profiles:
+    active: default   

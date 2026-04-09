@@ -25,10 +25,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(
-        controllers = BookingController.class,
-        excludeAutoConfiguration = {SecurityAutoConfiguration.class}
-)
+@WebMvcTest(controllers = BookingController.class, properties = {
+        "spring.cloud.config.enabled=false",
+        "spring.config.import=",
+        "jwt.secret=test-secret-key-at-least-32-characters",
+        "jwt.expiration-ms=3600000"
+})
 @AutoConfigureMockMvc(addFilters = false)
 @TestPropertySource(properties = {
         "spring.cloud.config.enabled=false",

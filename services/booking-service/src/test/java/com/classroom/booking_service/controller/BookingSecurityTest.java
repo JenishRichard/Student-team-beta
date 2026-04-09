@@ -21,8 +21,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(BookingController.class)
-@Import({SecurityConfig.class, JwtAuthenticationFilter.class})
+@WebMvcTest(controllers = BookingController.class, properties = {
+        "spring.cloud.config.enabled=false",
+        "spring.config.import=",
+        "jwt.secret=test-secret-key-at-least-32-characters",
+        "jwt.expiration-ms=3600000"
+})
+@Import(SecurityConfig.class)
 class BookingSecurityTest {
 
     @Autowired
