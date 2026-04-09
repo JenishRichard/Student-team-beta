@@ -10,6 +10,7 @@ public class RoomResponse {
     private Boolean available;
 
     public RoomResponse() {
+        // Default constructor required for JSON deserialization (Feign)
     }
 
     public Long getId() {

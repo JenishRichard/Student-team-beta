@@ -199,7 +199,7 @@ public class BookingService {
     public BookingWithRoomResponse getBookingWithRoom(Long id, String token) {
 
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("BOOKING_NOT_FOUND"));
 
         // Using Feign instead of RestTemplate
         RoomResponse room = roomServiceClient.getRoomById(booking.getRoomId(), token);
