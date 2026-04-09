@@ -112,7 +112,7 @@ public class RoomServiceImpl implements RoomService{
     }
 
     public CompletableFuture<RoomDetailsResponse> fallbackRoomDetails(Long roomId, String token, Throwable ex) {
-        log.error("Fallback triggered for roomId={} because {}", roomId, ex.getMessage());
+        log.error("Fallback triggered for roomId={} with token={} because {}", roomId, token, ex.getMessage());
 
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException(ROOM_NOT_FOUND_MESSAGE));

@@ -15,6 +15,7 @@ public class BookingWithRoomResponse {
     private RoomResponse room;
 
     public BookingWithRoomResponse() {
+        // Default constructor required for JSON deserialization (Feign)
     }
 
     public String getBookedBy() {
