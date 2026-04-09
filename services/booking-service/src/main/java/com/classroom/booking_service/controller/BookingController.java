@@ -6,6 +6,7 @@ import com.classroom.booking_service.service.BookingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.classroom.booking_service.dto.BookingWithRoomResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -75,5 +76,10 @@ public class BookingController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(service.getRoomDetails(roomId, token));
+    }
+
+    @GetMapping("/{id}/rooms")
+    public ResponseEntity<BookingWithRoomResponse> getBookingWithRoom(@PathVariable Long id,  @RequestHeader("Authorization") String token) {
+        return ResponseEntity.ok(service.getBookingWithRoom(id, token));
     }
 }

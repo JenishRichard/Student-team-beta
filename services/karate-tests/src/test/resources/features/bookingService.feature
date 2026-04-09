@@ -23,6 +23,21 @@ Scenario: Get booking by id
     And match response.id == bookingId
     And match response.bookedBy == bookedBy
 
+Scenario: Get booking with room details
+    Given url bookingServiceUrl + '/bookings/' + bookingId + '/rooms'
+    And header Authorization = 'Bearer ' + token
+    When method GET
+    Then status 200
+    And match response.id == bookingId
+    And match response.bookedBy == bookedBy
+    And match response.roomId == 3
+    And match response.bookedByIdentity == 'TEACHER'
+    And match response.bookingDate == '2026-04-10'
+    And match response.bookingTime == '14:00-15:00'
+    And match response.status == 'CONFIRMED'
+    And match response.room != null
+    And match response.room.id == 3
+
 Scenario: Cancel booking
     Given url bookingServiceUrl + '/bookings/' + bookingId + '/cancel'
     And header Authorization = 'Bearer ' + token
@@ -83,4 +98,11 @@ Scenario: Create duplicate booking for same slot
     }
     """
     When method POST
-    Then status 400   
+    Then status 400
+
+Scenario: Get booking with room details for invalid booking id
+    Given url bookingServiceUrl + '/bookings/1/rooms'
+    And header Authorization = 'Bearer ' + token
+    When method GET
+    Then status 404
+    And match response == 'Booking not found'
