@@ -1,55 +1,9 @@
-server:
-  port: ${SERVER_PORT:8081}
-
 spring:
-  datasource:
-    url: jdbc:mysql://${DB_HOST:classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com}:${DB_PORT:3306}/room_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: ${DB_USER:admin}
-    password: ${DB_PASSWORD:admin123}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+  application:
+    name: room-service
 
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: true
-    open-in-view: false
+  config:
+    import: optional:configserver:http://localhost:8888
 
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
-    baseline-version: 0
-    table: flyway_schema_history_room_service
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-
-resilience4j:
-  retry:
-    instances:
-      roomServiceRetry:
-        max-attempts: 3
-        wait-duration: 200ms
-  circuitbreaker:
-    instances:
-      roomServiceCB:
-        sliding-window-size: 5
-        minimum-number-of-calls: 2
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 5s
-  timelimiter:
-    instances:
-      roomServiceTimeout:
-        timeout-duration: 1s
-
-jwt:
-  secret: ${JWT_SECRET:CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS_123456}
-
-#Added for timeout testing
-custom:
-  delay-ms: 0
-
-booking-service:
-  base-url: ${BOOKING_SERVICE_URL:http://localhost:8083}
+  profiles:
+    active: default
