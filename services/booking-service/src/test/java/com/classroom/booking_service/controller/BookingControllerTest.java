@@ -7,12 +7,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -28,19 +26,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = BookingController.class, properties = {
         "spring.cloud.config.enabled=false",
         "spring.config.import=",
+        "management.endpoints.enabled-by-default=false",
         "jwt.secret=test-secret-key-at-least-32-characters",
         "jwt.expiration-ms=3600000"
 })
 @AutoConfigureMockMvc(addFilters = false)
-@TestPropertySource(properties = {
-        "spring.cloud.config.enabled=false",
-        "spring.config.import=",
-        "management.endpoints.enabled-by-default=false"
-})
 class BookingControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockBean
     private BookingService bookingService;
@@ -48,8 +45,9 @@ class BookingControllerTest {
     @MockBean
     private JwtService jwtService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    // ✅ FIX: Mock security dependency to avoid ApplicationContext failure
+    @MockBean
+    private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
 
     @Test
     void testGetAllBookings() throws Exception {

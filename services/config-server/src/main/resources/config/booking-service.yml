@@ -19,6 +19,7 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0
     table: flyway_schema_history_booking_service
+    locations: classpath:db/migration/booking   
 
 management:
   endpoints:
@@ -34,6 +35,10 @@ app:
   security:
     username: ${APP_SECURITY_USERNAME:booking-user}
     password: ${APP_SECURITY_PASSWORD:booking-pass}
+
+room:
+  service:
+    url: http://localhost:8081
 
 resilience4j:
   circuitbreaker:

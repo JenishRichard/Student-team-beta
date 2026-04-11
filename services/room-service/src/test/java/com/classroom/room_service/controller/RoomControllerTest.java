@@ -15,21 +15,27 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import org.springframework.web.client.RestTemplate;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(RoomController.class)
+@WebMvcTest(controllers = RoomController.class, properties = {
+        "spring.cloud.config.enabled=false",
+        "spring.config.import=",
+        "management.endpoints.enabled-by-default=false",
+        "jwt.secret=test-secret-key-at-least-32-characters",
+        "jwt.expiration-ms=3600000",   
+        "booking-service.base-url=http://localhost:8083"
+})
 @AutoConfigureMockMvc(addFilters = false)
 class RoomControllerTest {
 
@@ -45,6 +51,14 @@ class RoomControllerTest {
     @MockBean
     private JwtService jwtService;
 
+    
+    @MockBean
+    private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
+
+    
+    @MockBean
+    private RestTemplate restTemplate;
+
     private Room createRoom() {
         Room room = new Room();
         room.setId(1L);
@@ -58,10 +72,10 @@ class RoomControllerTest {
 
     @Test
     void getAllRooms_shouldReturnOk() throws Exception {
-
         Room room = createRoom();
 
-        when(roomService.filterRooms(null,null,null)).thenReturn(List.of(room));
+        when(roomService.filterRooms(null, null, null))
+                .thenReturn(List.of(room));
 
         mockMvc.perform(get("/rooms"))
                 .andExpect(status().isOk())
@@ -70,21 +84,19 @@ class RoomControllerTest {
 
     @Test
     void filterRooms_shouldReturnFilteredRooms() throws Exception {
-
         Room room = createRoom();
 
         when(roomService.filterRooms("A101", null, null))
                 .thenReturn(List.of(room));
 
         mockMvc.perform(get("/rooms")
-                        .param("roomNumber","A101"))
+                        .param("roomNumber", "A101"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].roomNumber").value("A101"));
     }
 
     @Test
     void getRoomById_shouldReturnRoom() throws Exception {
-
         Room room = createRoom();
 
         when(roomService.getRoomById(1L)).thenReturn(room);
@@ -98,9 +110,11 @@ class RoomControllerTest {
     void getRoomDetails_shouldReturnDetails() throws Exception {
 
         when(roomService.getRoomDetails(1L, "Bearer token"))
-                .thenReturn(CompletableFuture.completedFuture(new com.classroom.room_service.dto.RoomDetailsResponse(
-                        1L, "A101", "Main Block", 40, "LECTURE", true, true, "BOOKED", null
-                )));
+                .thenReturn(CompletableFuture.completedFuture(
+                        new com.classroom.room_service.dto.RoomDetailsResponse(
+                                1L, "A101", "Main Block", 40,
+                                "LECTURE", true, true, "BOOKED", null
+                        )));
 
         MvcResult result = mockMvc.perform(get("/rooms/room-details/1")
                         .header("Authorization", "Bearer token"))
@@ -126,7 +140,6 @@ class RoomControllerTest {
 
     @Test
     void createRoom_shouldReturn201() throws Exception {
-
         Room room = createRoom();
 
         when(roomService.createRoom(any(Room.class))).thenReturn(room);
@@ -140,7 +153,6 @@ class RoomControllerTest {
 
     @Test
     void updateRoom_shouldReturnUpdatedRoom() throws Exception {
-
         Room room = createRoom();
 
         when(roomService.updateRoom(anyLong(), any(Room.class))).thenReturn(room);
@@ -154,7 +166,6 @@ class RoomControllerTest {
 
     @Test
     void deleteRoom_shouldReturn204() throws Exception {
-
         doNothing().when(roomService).deleteRoom(1L);
 
         mockMvc.perform(delete("/rooms/1"))
@@ -163,7 +174,6 @@ class RoomControllerTest {
 
     @Test
     void deleteRoom_shouldReturn404() throws Exception {
-
         doThrow(new ResourceNotFoundException("Room not found"))
                 .when(roomService).deleteRoom(1L);
 
