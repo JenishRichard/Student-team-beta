@@ -26,6 +26,10 @@ management:
       exposure:
         include: health,info
 
+room:
+  service:
+    url: localhost:8081
+    
 jwt:
   secret: ${JWT_SECRET:CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS_123456}
   expiration-ms: ${JWT_EXPIRATION_MS:3600000}
