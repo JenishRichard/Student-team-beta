@@ -31,6 +31,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "spring.config.import=",
         "management.endpoints.enabled-by-default=false"
 })
+@TestPropertySource(properties = {
+	    "jwt.secret=test-secret-key-at-least-32-characters",
+	    "jwt.expiration-ms=3600000"
+	})
 class AuthControllerTest {
 
     @Autowired
