@@ -45,7 +45,7 @@ class BookingControllerTest {
     @MockBean
     private JwtService jwtService;
 
-    // ✅ FIX: Mock security dependency to avoid ApplicationContext failure
+    
     @MockBean
     private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
 
