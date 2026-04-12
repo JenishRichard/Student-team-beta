@@ -1,53 +1,51 @@
 package com.classroom.booking_service.service;
 
-import com.classroom.booking_service.dto.BookingStatusResponse;
-import com.classroom.booking_service.entity.Booking;
-import com.classroom.booking_service.entity.BookingStatus;
-import com.classroom.booking_service.entity.TimeRange;
-import com.classroom.booking_service.exception.BookingConflictException;
+import com.classroom.booking_service.client.RoomServiceClient;
+import com.classroom.booking_service.dto.*;
+import com.classroom.booking_service.entity.*;
+import com.classroom.booking_service.exception.*;
 import com.classroom.booking_service.repository.BookingRepository;
+
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import com.classroom.booking_service.exception.RoomServiceUnavailableException;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import com.classroom.booking_service.client.RoomServiceClient;
-import com.classroom.booking_service.dto.BookingWithRoomResponse;
-import com.classroom.booking_service.dto.RoomResponse;
-import com.classroom.booking_service.exception.ResourceNotFoundException;
 
 @Service
 public class BookingService {
 
     private static final Logger log = LoggerFactory.getLogger(BookingService.class);
     private static final String BOOKING_NOT_FOUND = "Booking not found";
+
     private final BookingRepository bookingRepository;
-    private final RestTemplate restTemplate;
     private final RoomServiceClient roomServiceClient;
 
-    public BookingService(BookingRepository bookingRepository, RestTemplate restTemplate, RoomServiceClient roomServiceClient) {
+    public BookingService(BookingRepository bookingRepository,
+                          RoomServiceClient roomServiceClient) {
         this.bookingRepository = bookingRepository;
-        this.restTemplate = restTemplate;
-         this.roomServiceClient = roomServiceClient;
+        this.roomServiceClient = roomServiceClient;
     }
 
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
     }
+
     public Booking getBookingById(Long id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(BOOKING_NOT_FOUND));
     }
+
     public Booking createBooking(Booking booking) {
+
         List<Booking> existingBookings =
                 bookingRepository.findByRoomIdAndBookingDateAndStatus(
                         booking.getRoomId(),
@@ -62,9 +60,7 @@ public class BookingService {
 
             if (overlaps(existingRange, requestedRange)) {
                 throw new BookingConflictException(
-                        "Room " + booking.getRoomId()
-                                + " is already booked for "
-                                + booking.getBookingTime()
+                        "Room " + booking.getRoomId() + " is already booked for " + booking.getBookingTime()
                 );
             }
         }
@@ -88,6 +84,7 @@ public class BookingService {
     }
 
     public BookingStatusResponse getRoomBookingStatus(Long roomId) {
+
         boolean booked = !bookingRepository.findByRoomIdAndBookingDateAndStatus(
                 roomId,
                 LocalDate.now(),
@@ -97,20 +94,15 @@ public class BookingService {
         return new BookingStatusResponse(roomId, booked, booked ? "BOOKED" : "AVAILABLE");
     }
 
-
     @Retry(name = "roomService")
     @CircuitBreaker(name = "roomService", fallbackMethod = "availabilityFallback")
     public boolean isRoomAvailable(Long roomId, String range) {
 
-
-        String url = "http://localhost:8081/rooms/" + roomId;
-
         try {
-            restTemplate.getForObject(url, String.class);
-        } catch (org.springframework.web.client.HttpClientErrorException.NotFound ex) {
+            roomServiceClient.getRoomById(roomId, null);
+        } catch (Exception ex) {
             throw new IllegalArgumentException("Room does not exist");
         }
-
 
         TimeRange requestedRange = parseRange(range);
 
@@ -133,43 +125,33 @@ public class BookingService {
     }
 
     public boolean availabilityFallback(Long roomId, String range, Exception ex) {
-        log.error("Room service unavailable for roomId={} and range={}", roomId, range, ex);
+        log.error("Room service unavailable for roomId={}", roomId, ex);
         throw new RoomServiceUnavailableException("Room service unavailable");
     }
 
- 
     @Retry(name = "roomService")
     @CircuitBreaker(name = "roomService", fallbackMethod = "fallbackRoomService")
     @TimeLimiter(name = "roomService")
     public CompletableFuture<String> getRoomDetails(Long roomId, String token) {
+
         return CompletableFuture.supplyAsync(() -> {
-            log.info("Calling room-service for roomId={}", roomId);
-            log.info("Forwarding token: {}", token);
+            log.info("Calling room-service via Feign for roomId={}", roomId);
 
-            String url = "http://localhost:8081/rooms/" + roomId;
+            RoomResponse room = roomServiceClient.getRoomById(roomId, token);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", token);
-
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<String> response =
-                    restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-
-            return response.getBody();
+            return room.toString();
         });
     }
 
     public CompletableFuture<String> fallbackRoomService(Long roomId, String token, Exception ex) {
-    	log.error("Room service failed for roomId={}, authHeaderPresent={}",
-    	        roomId,
-    	        token != null && !token.isBlank(),
-    	        ex);
+
+        log.error("Room service failed for roomId={}", roomId, ex);
 
         return CompletableFuture.completedFuture(
                 "Room service is slow or unavailable. Please try again later."
         );
     }
+
     private TimeRange parseRange(String range) {
         try {
             String[] parts = range.split("-");
@@ -196,19 +178,19 @@ public class BookingService {
         return a.start().isBefore(b.end()) && b.start().isBefore(a.end());
     }
 
+    
     public BookingWithRoomResponse getBookingWithRoom(Long id, String token) {
 
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("BOOKING_NOT_FOUND"));
 
-        // Using Feign instead of RestTemplate
         RoomResponse room = roomServiceClient.getRoomById(booking.getRoomId(), token);
 
         BookingWithRoomResponse response = new BookingWithRoomResponse();
 
-        response.setBookedBy(booking.getBookedBy());
         response.setId(booking.getId());
         response.setRoomId(booking.getRoomId());
+        response.setBookedBy(booking.getBookedBy());
         response.setBookedByIdentity(booking.getBookedByIdentity());
         response.setBookingDate(booking.getBookingDate().toString());
         response.setBookingTime(booking.getBookingTime());
