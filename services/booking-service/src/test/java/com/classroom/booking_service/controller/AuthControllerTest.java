@@ -11,7 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Map;
@@ -22,19 +22,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ActiveProfiles("test")
 @WebMvcTest(
         controllers = AuthController.class,
         excludeAutoConfiguration = {SecurityAutoConfiguration.class}
 )
-@TestPropertySource(properties = {
-        "spring.cloud.config.enabled=false",
-        "spring.config.import=",
-        "management.endpoints.enabled-by-default=false"
-})
-@TestPropertySource(properties = {
-	    "jwt.secret=test-secret-key-at-least-32-characters",
-	    "jwt.expiration-ms=3600000"
-	})
+
 class AuthControllerTest {
 
     @Autowired

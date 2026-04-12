@@ -1,5 +1,6 @@
 package com.classroom.booking_service.controller;
 
+import com.classroom.booking_service.client.RoomServiceClient;
 import com.classroom.booking_service.entity.Booking;
 import com.classroom.booking_service.security.JwtAuthenticationFilter;
 import com.classroom.booking_service.security.JwtService;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -21,12 +23,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = BookingController.class, properties = {
-        "spring.cloud.config.enabled=false",
-        "spring.config.import=",
-        "jwt.secret=test-secret-key-at-least-32-characters",
-        "jwt.expiration-ms=3600000"
-})
+@ActiveProfiles("test")
+@WebMvcTest(controllers = BookingController.class)
+
 @Import(SecurityConfig.class)
 class BookingSecurityTest {
 
@@ -38,6 +37,12 @@ class BookingSecurityTest {
 
     @MockBean
     private JwtService jwtService;
+
+    @MockBean
+    private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
+
+    @MockBean
+    private RoomServiceClient roomServiceClient;
 
     @Test
     void shouldReturn401WhenBookingsEndpointHasNoToken() throws Exception {
