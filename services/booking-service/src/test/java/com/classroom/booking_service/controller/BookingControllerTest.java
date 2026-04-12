@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -23,13 +24,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = BookingController.class, properties = {
-        "spring.cloud.config.enabled=false",
-        "spring.config.import=",
-        "management.endpoints.enabled-by-default=false",
-        "jwt.secret=test-secret-key-at-least-32-characters",
-        "jwt.expiration-ms=3600000"
-})
+
+@ActiveProfiles("test")
+@WebMvcTest(controllers = BookingController.class)
+
 @AutoConfigureMockMvc(addFilters = false)
 class BookingControllerTest {
 

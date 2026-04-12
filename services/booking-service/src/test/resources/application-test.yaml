@@ -1,0 +1,20 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+      import-check:
+        enabled: false
+  config:
+    import: "optional:configserver:"
+
+jwt:
+  secret: test-secret-key-at-least-32-characters
+  expiration-ms: 3600000
+
+management:
+  endpoints:
+    enabled-by-default: false
+
+room:
+  service:
+    url: localhost:8081
