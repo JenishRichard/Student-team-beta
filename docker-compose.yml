@@ -6,7 +6,7 @@ services:
       - "8081:8081"
     environment:
       SERVER_PORT: 8081
-      CONFIG_SERVER_URL: http://config-server:8888
+      CONFIG_SERVER_URL: http://host.docker.internal:8888
       DB_HOST: classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com
       DB_PORT: 3306
       DB_USER: admin
@@ -23,7 +23,7 @@ services:
       - "8083:8083"
     environment:
       SERVER_PORT: 8083
-      CONFIG_SERVER_URL: http://config-server:8888
+      CONFIG_SERVER_URL: http://host.docker.internal:8888
       DB_HOST: classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com
       DB_PORT: 3306
       DB_USER: admin
