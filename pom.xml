@@ -10,6 +10,26 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
+  <properties>
+    <sonar.coverage.exclusions>
+      **/*Application.java,
+
+      **/services/booking-service/src/main/java/com/classroom/booking_service/entity/**,
+      **/services/booking-service/src/main/java/com/classroom/booking_service/dto/**,
+      **/services/booking-service/src/main/java/com/classroom/booking_service/config/**,
+      **/services/booking-service/src/main/java/com/classroom/booking_service/exception/**,
+      **/services/booking-service/src/main/java/com/classroom/booking_service/security/JwtService.java,
+      **/services/booking-service/src/main/java/com/classroom/booking_service/security/JwtAuthenticationFilter.java,
+
+      **/services/room-service/src/main/java/com/classroom/room_service/entity/**,
+      **/services/room-service/src/main/java/com/classroom/room_service/dto/**,
+      **/services/room-service/src/main/java/com/classroom/room_service/config/**,
+      **/services/room-service/src/main/java/com/classroom/room_service/exception/**,
+      **/services/room-service/src/main/java/com/classroom/room_service/security/JwtService.java,
+      **/services/room-service/src/main/java/com/classroom/room_service/security/JwtAuthenticationFilter.java
+    </sonar.coverage.exclusions>
+  </properties>
+
   <modules>
     <module>services/config-server</module>
     <module>services/booking-service</module>

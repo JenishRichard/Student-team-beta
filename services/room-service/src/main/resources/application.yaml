@@ -3,7 +3,12 @@ spring:
     name: room-service
 
   config:
-    import: optional:configserver:http://localhost:8888
+    import: "optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}"
+
+  cloud:
+    config:
+      uri: ${CONFIG_SERVER_URL:http://localhost:8888}
+      fail-fast: false  
 
   profiles:
     active: default
