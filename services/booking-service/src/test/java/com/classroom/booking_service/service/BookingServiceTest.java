@@ -16,6 +16,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import com.classroom.booking_service.client.RoomServiceClient;
+import com.classroom.booking_service.dto.BookingWithRoomResponse;
+import com.classroom.booking_service.dto.RoomResponse;
+import com.classroom.booking_service.entity.BookingIdentity;
+import com.classroom.booking_service.entity.BookingStatus;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,6 +39,9 @@ class BookingServiceTest {
 
     @Mock
     private RestTemplate restTemplate;
+    
+    @Mock
+    private RoomServiceClient roomServiceClient;
 
     @InjectMocks
     private BookingService bookingService;
@@ -273,5 +281,44 @@ class BookingServiceTest {
                 bookingService.fallbackRoomService(2L, "Bearer token", new RuntimeException());
 
         assertEquals("Room service is slow or unavailable. Please try again later.", result.join());
+    }
+
+    @Test
+        void testGetBookingWithRoom_Success() {
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setRoomId(101L);
+        booking.setBookedBy("Sanket");
+        booking.setBookedByIdentity(BookingIdentity.STUDENT);
+        booking.setBookingDate(LocalDate.of(2026, 4, 13));
+        booking.setBookingTime("10:00-11:00");
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        RoomResponse room = new RoomResponse();
+        room.setId(101L);
+        room.setRoomNumber("A101");
+        room.setCapacity(40);
+        room.setAvailable(true);
+
+        when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
+        when(roomServiceClient.getRoomById(101L, "Bearer token")).thenReturn(room);
+
+        BookingWithRoomResponse response =
+                bookingService.getBookingWithRoom(1L, "Bearer token");
+
+        assertNotNull(response);
+        assertEquals(1L, response.getId());
+        assertEquals(101L, response.getRoomId());
+        assertEquals("Sanket", response.getBookedBy());
+        assertEquals(BookingIdentity.STUDENT, response.getBookedByIdentity());
+        assertEquals("2026-04-13", response.getBookingDate());
+        assertEquals("10:00-11:00", response.getBookingTime());
+        assertEquals(BookingStatus.CONFIRMED, response.getStatus());
+        assertNotNull(response.getRoom());
+        assertEquals(101L, response.getRoom().getId());
+        assertEquals("A101", response.getRoom().getRoomNumber());
+
+        verify(bookingRepository).findById(1L);
+        verify(roomServiceClient).getRoomById(101L, "Bearer token");
     }
 }
