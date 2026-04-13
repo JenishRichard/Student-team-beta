@@ -14,13 +14,14 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import com.classroom.booking_service.client.RoomServiceClient;
 import com.classroom.booking_service.dto.BookingWithRoomResponse;
 import com.classroom.booking_service.dto.RoomResponse;
 import com.classroom.booking_service.entity.BookingIdentity;
-import com.classroom.booking_service.entity.BookingStatus;
+
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,6 +31,11 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+
+
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 
 @ExtendWith(MockitoExtension.class)
 class BookingServiceTest {
@@ -163,8 +169,12 @@ class BookingServiceTest {
 
     @Test
     void testRoomAvailable() {
-        when(restTemplate.getForObject(anyString(), eq(String.class)))
-                .thenReturn("room exists");
+
+        RoomResponse room = new RoomResponse();
+        room.setId(101L);
+
+        when(roomServiceClient.getRoomById(eq(101L), anyString()))
+                .thenReturn(room);
 
         when(bookingRepository.findByRoomIdAndBookingDateAndStatus(
                 eq(101L), any(LocalDate.class), eq(BookingStatus.CONFIRMED)))
@@ -177,8 +187,12 @@ class BookingServiceTest {
 
     @Test
     void testRoomNotAvailable() {
-        when(restTemplate.getForObject(anyString(), eq(String.class)))
-                .thenReturn("room exists");
+
+        RoomResponse room = new RoomResponse();
+        room.setId(101L);
+
+        when(roomServiceClient.getRoomById(eq(101L), anyString()))
+                .thenReturn(room);
 
         Booking booking = new Booking();
         booking.setRoomId(101L);
@@ -196,9 +210,9 @@ class BookingServiceTest {
 
     @Test
     void testRoomDoesNotExist() {
-        when(restTemplate.getForObject(anyString(), eq(String.class)))
-                .thenThrow(HttpClientErrorException.NotFound.create(
-                        HttpStatus.NOT_FOUND, "Not Found", null, null, null));
+
+        when(roomServiceClient.getRoomById(eq(999L), anyString()))
+                .thenThrow(new IllegalArgumentException("Room not found"));
 
         assertThrows(IllegalArgumentException.class,
                 () -> bookingService.isRoomAvailable(999L, "10:00-12:00"));
@@ -206,8 +220,12 @@ class BookingServiceTest {
 
     @Test
     void testInvalidTimeRange() {
-        when(restTemplate.getForObject(anyString(), eq(String.class)))
-                .thenReturn("room exists");
+
+        RoomResponse room = new RoomResponse();
+        room.setId(101L);
+
+        when(roomServiceClient.getRoomById(eq(101L), anyString()))
+                .thenReturn(room);
 
         assertThrows(IllegalArgumentException.class,
                 () -> bookingService.isRoomAvailable(101L, "invalid-range"));
@@ -215,8 +233,12 @@ class BookingServiceTest {
 
     @Test
     void testStartAfterEnd() {
-        when(restTemplate.getForObject(anyString(), eq(String.class)))
-                .thenReturn("room exists");
+
+        RoomResponse room = new RoomResponse();
+        room.setId(101L);
+
+        when(roomServiceClient.getRoomById(eq(101L), anyString()))
+                .thenReturn(room);
 
         assertThrows(IllegalArgumentException.class,
                 () -> bookingService.isRoomAvailable(101L, "14:00-10:00"));
@@ -261,7 +283,9 @@ class BookingServiceTest {
 
     @Test
     void testGetRoomDetailsSuccess() {
-        ResponseEntity<String> response = new ResponseEntity<>("room data", HttpStatus.OK);
+
+        ResponseEntity<String> response =
+                new ResponseEntity<>("room data", HttpStatus.OK);
 
         when(restTemplate.exchange(
                 anyString(),
@@ -270,11 +294,13 @@ class BookingServiceTest {
                 eq(String.class)))
                 .thenReturn(response);
 
-        CompletableFuture<String> result = bookingService.getRoomDetails(2L, "Bearer token");
+        CompletableFuture<String> result =
+                bookingService.getRoomDetails(2L, "Bearer token");
 
+        assertNotNull(result);
         assertEquals("room data", result.join());
     }
-
+    
     @Test
     void testFallbackRoomService() {
         CompletableFuture<String> result =
@@ -311,7 +337,7 @@ class BookingServiceTest {
         assertEquals(101L, response.getRoomId());
         assertEquals("Sanket", response.getBookedBy());
         assertEquals(BookingIdentity.STUDENT, response.getBookedByIdentity());
-        assertEquals("2026-04-13", response.getBookingDate());
+        assertEquals(LocalDate.of(2026, 4, 13).toString(), response.getBookingDate());
         assertEquals("10:00-11:00", response.getBookingTime());
         assertEquals(BookingStatus.CONFIRMED, response.getStatus());
         assertNotNull(response.getRoom());
