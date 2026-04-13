@@ -5,10 +5,16 @@ services:
     ports:
       - "8081:8081"
     environment:
+      SERVER_PORT: 8081
+      CONFIG_SERVER_URL: http://config-server:8888
       DB_HOST: classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com
       DB_PORT: 3306
       DB_USER: admin
       DB_PASSWORD: admin123
+      BOOKING_SERVICE_URL: http://booking-service:8083
+      JWT_SECRET: CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS_123456
+      JWT_EXPIRATION_MS: 3600000
+    
 
   booking-service:
     image: sanketshetty23/booking-service:latest
@@ -16,8 +22,13 @@ services:
     ports:
       - "8083:8083"
     environment:
+      SERVER_PORT: 8083
+      CONFIG_SERVER_URL: http://config-server:8888
       DB_HOST: classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com
       DB_PORT: 3306
       DB_USER: admin
       DB_PASSWORD: admin123
-      ROOM_SERVICE_URL: room-service:8081
+      ROOM_SERVICE_URL: http://room-service:8081
+      JWT_SECRET: CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS_123456
+      JWT_EXPIRATION_MS: 3600000
+    
