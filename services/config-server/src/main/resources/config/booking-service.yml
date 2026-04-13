@@ -48,7 +48,7 @@ app:
 
 room:
   service:
-    url: http://ROOM-SERVICE
+    url: ${ROOM_SERVICE_URL:http://localhost:8081}
 
 resilience4j:
   circuitbreaker:

@@ -47,7 +47,7 @@ app:
     password: ${APP_SECURITY_PASSWORD:room-pass}
 
 booking-service:
-  base-url: http://BOOKING-SERVICE
+  base-url: ${BOOKING_SERVICE_URL:http://localhost:8083}
 
 resilience4j:
   circuitbreaker:

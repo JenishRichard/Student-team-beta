@@ -1,10 +1,11 @@
-eureka:
-  client:
-    enabled: false
-
 spring:
+  cloud:
+    config:
+      enabled: false
+      import-check:
+        enabled: false
   config:
-    import: ""
+    import: "optional:configserver:"
 
 jwt:
   secret: test-secret-key-at-least-32-characters

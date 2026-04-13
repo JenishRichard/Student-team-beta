@@ -4,7 +4,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -13,6 +14,8 @@ import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
+	
+	private static final Logger log = LoggerFactory.getLogger(JwtService.class);
 
     @Value("${jwt.secret}")
     private String secret;
@@ -21,7 +24,7 @@ public class JwtService {
 
     @PostConstruct
     public void init() {
-        System.out.println("JWT SECRET LENGTH: " + (secret != null ? secret.length() : "NULL"));
+    	log.info("JWT SECRET LENGTH: {}", secret != null ? secret.length() : "NULL");
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 

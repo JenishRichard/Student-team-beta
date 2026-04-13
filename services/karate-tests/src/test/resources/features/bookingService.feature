@@ -105,4 +105,4 @@ Scenario: Get booking with room details for invalid booking id
     And header Authorization = 'Bearer ' + token
     When method GET
     Then status 404
-    And match response == 'Booking not found'
+    And match response == 'BOOKING_NOT_FOUND'

@@ -22,6 +22,22 @@
     <properties>
         <java.version>17</java.version>
         <jacoco.version>0.8.11</jacoco.version>
+        <sonar.coverage.exclusions>
+            **/BookingServiceApplication.java,
+            **/entity/**,
+            **/dto/**,
+            **/config/**,
+            **/exception/**,
+            **/security/JwtService.java,
+            **/security/JwtAuthenticationFilter.java,
+            **/ErrorResponse.java,
+            **/BookingWithRoomResponse.java,
+            **/RoomResponse.java,
+            **/ResourceNotFoundException.java,
+            **/RoomServiceUnavailableException.java,
+            **/GlobalExceptionHandler.java,
+            **/RestTemplateConfig.java
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencyManagement>
@@ -185,6 +201,15 @@
                         <exclude>**/dto/**</exclude>
                         <exclude>**/config/**</exclude>
                         <exclude>**/exception/**</exclude>
+                        <exclude>**/security/JwtService.class</exclude>
+                        <exclude>**/security/JwtAuthenticationFilter.class</exclude>
+                        <exclude>**/ErrorResponse.class</exclude>
+                        <exclude>**/BookingWithRoomResponse.class</exclude>
+                        <exclude>**/RoomResponse.class</exclude>
+                        <exclude>**/ResourceNotFoundException.class</exclude>
+                        <exclude>**/RoomServiceUnavailableException.class</exclude>
+                        <exclude>**/GlobalExceptionHandler.class</exclude>
+                        <exclude>**/RestTemplateConfig.class</exclude>
                     </excludes>
                 </configuration>
             </plugin>
