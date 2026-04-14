@@ -211,7 +211,7 @@ class BookingServiceTest {
     @Test
     void testRoomDoesNotExist() {
 
-        when(roomServiceClient.getRoomById(eq(999L), anyString()))
+        when(roomServiceClient.getRoomById(eq(999L), any()))
                 .thenThrow(new IllegalArgumentException("Room not found"));
 
         assertThrows(IllegalArgumentException.class,
@@ -284,21 +284,19 @@ class BookingServiceTest {
     @Test
     void testGetRoomDetailsSuccess() {
 
-        ResponseEntity<String> response =
-                new ResponseEntity<>("room data", HttpStatus.OK);
+        RoomResponse room = new RoomResponse();
+        room.setId(2L);
+        room.setRoomNumber("A101");
 
-        when(restTemplate.exchange(
-                anyString(),
-                eq(HttpMethod.GET),
-                any(HttpEntity.class),
-                eq(String.class)))
-                .thenReturn(response);
+        when(roomServiceClient.getRoomById(2L, "Bearer token"))
+                .thenReturn(room);
 
         CompletableFuture<String> result =
                 bookingService.getRoomDetails(2L, "Bearer token");
 
         assertNotNull(result);
-        assertEquals("room data", result.join());
+        // the service returns room.toString(); assert equality to be deterministic
+        assertEquals(room.toString(), result.join());
     }
     
     @Test

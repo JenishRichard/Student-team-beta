@@ -4,15 +4,19 @@ import com.classroom.booking_service.entity.Booking;
 import com.classroom.booking_service.security.JwtService;
 import com.classroom.booking_service.service.BookingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+<<<<<<< HEAD
 import org.springframework.test.context.ActiveProfiles;
+=======
+>>>>>>> a9f9104 (Test Cases fix and coverage)
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -24,28 +28,34 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+<<<<<<< HEAD
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = BookingController.class)
 
 @AutoConfigureMockMvc(addFilters = false)
+=======
+@ExtendWith(MockitoExtension.class)
+>>>>>>> a9f9104 (Test Cases fix and coverage)
 class BookingControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
+    @Mock
     private BookingService bookingService;
 
-    @MockBean
+    @Mock
     private JwtService jwtService;
 
-    
-    @MockBean
+    @Mock
     private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
+
+    @BeforeEach
+    void setUp() {
+        BookingController controller = new BookingController(bookingService);
+        this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    }
 
     @Test
     void testGetAllBookings() throws Exception {
