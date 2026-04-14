@@ -8,7 +8,4 @@ spring:
   cloud:
     config:
       uri: ${CONFIG_SERVER_URL:http://localhost:8888}
-      fail-fast: false
-
-  profiles:
-    active: default   
+      fail-fast: false  
