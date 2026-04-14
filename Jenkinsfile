@@ -34,7 +34,21 @@ pipeline {
             steps {
                 sh '''
                   set -e
-                  mvn -f services/booking-service/pom.xml clean verify
+                  mvn -e -f services/booking-service/pom.xml clean verify || {
+                    echo "Booking service surefire reports:"
+                    find services/booking-service/target/surefire-reports -type f -maxdepth 1 2>/dev/null | sort || true
+                    for f in services/booking-service/target/surefire-reports/*.txt; do
+                      [ -f "$f" ] || continue
+                      echo "===== $f ====="
+                      sed -n '1,200p' "$f"
+                    done
+                    for f in services/booking-service/target/*dump*; do
+                      [ -f "$f" ] || continue
+                      echo "===== $f ====="
+                      sed -n '1,200p' "$f"
+                    done
+                    exit 1
+                  }
                 '''
             }
         }
@@ -60,8 +74,9 @@ pipeline {
                 withSonarQubeEnv('SonarQube') {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                         sh '''
-                            mvn -N -f pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar \
-                            -Dsonar.host.url=http://127.0.0.1:9000 \
+                            export SONAR_SCANNER_JAVA_OPTS="-Xmx512m"
+                            mvn -e -N -f pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
+                            -Dsonar.host.url=$SONAR_HOST_URL \
                             -Dsonar.token=$SONAR_TOKEN \
                             -Dsonar.projectKey=classroom-booking \
                             -Dsonar.projectName=classroom-booking \
@@ -69,8 +84,7 @@ pipeline {
                             -Dsonar.tests=services/room-service/src/test,services/booking-service/src/test \
                             -Dsonar.java.binaries=services/room-service/target/classes,services/booking-service/target/classes \
                             -Dsonar.junit.reportPaths=services/room-service/target/surefire-reports,services/booking-service/target/surefire-reports \
-                            -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml \
-                            -Dsonar.scanner.skipJreProvisioning=true
+                            -Dsonar.coverage.jacoco.xmlReportPaths=services/room-service/target/site/jacoco/jacoco.xml,services/booking-service/target/site/jacoco/jacoco.xml
                         '''
                     }
                 }

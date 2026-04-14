@@ -211,7 +211,9 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>@{argLine} -XX:+EnableDynamicAgentLoading</argLine>
+                    <argLine>@{argLine} -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true</argLine>
+                    <useFile>false</useFile>
+                    <printSummary>true</printSummary>
                     <!-- Prevent tests from trying to import an external config server -->
                     <systemPropertyVariables>
                         <spring.config.import></spring.config.import>
