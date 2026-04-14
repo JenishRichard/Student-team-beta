@@ -22,6 +22,11 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+@ActiveProfiles("test")
+
+@WebMvcTest(controllers = AuthController.class)
+
+@AutoConfigureMockMvc(addFilters = false)   
 
 @ActiveProfiles("test")
 @WebMvcTest(

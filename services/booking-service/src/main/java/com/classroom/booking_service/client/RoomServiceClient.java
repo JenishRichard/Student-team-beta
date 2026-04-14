@@ -9,9 +9,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @FeignClient(name = "ROOM-SERVICE")
 public interface RoomServiceClient {
 
-    @GetMapping("/rooms/internal/{id}")
-    RoomResponse getRoomByIdInternal(@PathVariable("id") Long id);
-
     @GetMapping("/rooms/{id}")
     RoomResponse getRoomById(
             @PathVariable("id") Long id,

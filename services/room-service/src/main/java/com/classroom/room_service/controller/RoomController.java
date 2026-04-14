@@ -56,11 +56,6 @@ public class RoomController {
         return ResponseEntity.ok(room);
     }
 
-    @GetMapping("/internal/{id}")
-    public ResponseEntity<Room> getRoomByIdInternal(@PathVariable Long id) {
-        return ResponseEntity.ok(roomService.getRoomById(id));
-    }
-
     @PostMapping
     public ResponseEntity<Room> createRoom(@RequestBody Room room) {
         Room saved = roomService.createRoom(room);
