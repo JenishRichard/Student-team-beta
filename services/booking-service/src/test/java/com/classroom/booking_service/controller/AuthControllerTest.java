@@ -11,10 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-<<<<<<< HEAD
-import org.springframework.test.context.ActiveProfiles;
-=======
->>>>>>> a9f9104 (Test Cases fix and coverage)
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -26,20 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-<<<<<<< HEAD
-@WebMvcTest(controllers = AuthController.class)
-
-@AutoConfigureMockMvc(addFilters = false)   
-
-@ActiveProfiles("test")
-@WebMvcTest(
-        controllers = AuthController.class,
-        excludeAutoConfiguration = {SecurityAutoConfiguration.class}
-)
-
-=======
 @ExtendWith(MockitoExtension.class)
->>>>>>> a9f9104 (Test Cases fix and coverage)
 class AuthControllerTest {
 
     private MockMvc mockMvc;

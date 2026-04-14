@@ -11,10 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
-<<<<<<< HEAD
-import org.springframework.test.context.ActiveProfiles;
-=======
->>>>>>> a9f9104 (Test Cases fix and coverage)
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -28,15 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-<<<<<<< HEAD
-
-@ActiveProfiles("test")
-@WebMvcTest(controllers = BookingController.class)
-
-@AutoConfigureMockMvc(addFilters = false)
-=======
 @ExtendWith(MockitoExtension.class)
->>>>>>> a9f9104 (Test Cases fix and coverage)
 class BookingControllerTest {
 
     private MockMvc mockMvc;
