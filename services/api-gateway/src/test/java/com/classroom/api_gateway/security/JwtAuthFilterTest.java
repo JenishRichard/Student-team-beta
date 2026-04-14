@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import io.jsonwebtoken.JwtException;
+import jakarta.servlet.FilterChain;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -97,7 +100,7 @@ class JwtAuthFilterTest {
 
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        doNothing().when(jwtService).validate("valid-token");
+        when(jwtService.validate("valid-token")).thenReturn(null);
 
         filter.doFilter(request, response, chain);
 
