@@ -7,6 +7,7 @@ services:
     environment:
       SERVER_PORT: 8081
       CONFIG_SERVER_URL: http://host.docker.internal:8888
+      EUREKA_SERVER_URL: http://host.docker.internal:8761/eureka/
       DB_HOST: classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com
       DB_PORT: 3306
       DB_USER: admin
@@ -14,6 +15,8 @@ services:
       BOOKING_SERVICE_URL: http://booking-service:8083
       JWT_SECRET: CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS_123456
       JWT_EXPIRATION_MS: 3600000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  
     
 
   booking-service:
@@ -24,6 +27,7 @@ services:
     environment:
       SERVER_PORT: 8083
       CONFIG_SERVER_URL: http://host.docker.internal:8888
+      EUREKA_SERVER_URL: http://host.docker.internal:8761/eureka/
       DB_HOST: classroom-dev-db.cvwy4uckycwn.eu-west-1.rds.amazonaws.com
       DB_PORT: 3306
       DB_USER: admin
@@ -31,4 +35,6 @@ services:
       ROOM_SERVICE_URL: http://room-service:8081
       JWT_SECRET: CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS_123456
       JWT_EXPIRATION_MS: 3600000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     
