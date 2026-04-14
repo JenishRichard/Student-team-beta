@@ -20,7 +20,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <jacoco.version>0.8.11</jacoco.version>
+        <jacoco.version>0.8.13</jacoco.version>
         <sonar.coverage.exclusions>
             **/RoomServiceApplication.java,
             **/entity/**,
@@ -165,7 +165,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.11</version>
+                <version>0.8.13</version>
 
                 <executions>
                     <execution>
