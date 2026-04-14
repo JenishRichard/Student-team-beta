@@ -19,9 +19,6 @@ import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
-    private static final String PROTECTED_PATH_PREFIX = "/bookings";
 
     private final JwtService jwtService;
 
@@ -29,14 +26,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.jwtService = jwtService;
     }
 
+    // Apply filter only for booking endpoints
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !isProtectedPath(request.getRequestURI());
-    }
-
-    @Override
-    protected boolean shouldNotFilterAsyncDispatch() {
-        return false;
+        return !request.getRequestURI().startsWith("/bookings");
     }
 
     @Override
@@ -45,51 +38,42 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String token = resolveBearerToken(request);
-        if (token == null) {
-            writeUnauthorized(response, unauthorizedBody("Missing Bearer token"));
+        String authHeader = request.getHeader("Authorization");
+
+        
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
             return;
         }
 
+        String token = authHeader.substring("Bearer ".length());
+
         try {
-            SecurityContextHolder.getContext().setAuthentication(buildAuthentication(token));
-            filterChain.doFilter(request, response);
+            Claims claims = jwtService.validate(token);
+
+        
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            claims.getSubject(),
+                            null,
+                            List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                    );
+
+       
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
         } catch (JwtException | IllegalArgumentException ex) {
-            writeUnauthorized(response, unauthorizedBody("Invalid token"));
+            writeUnauthorized(response, "Invalid token");
+            return;
         }
+
+        
+        filterChain.doFilter(request, response);
+
+        
     }
 
-    private boolean isProtectedPath(String requestUri) {
-        return requestUri != null && requestUri.startsWith(PROTECTED_PATH_PREFIX);
-    }
-
-    private String resolveBearerToken(HttpServletRequest request) {
-        String authHeader = request.getHeader(AUTHORIZATION_HEADER);
-        if (authHeader == null || authHeader.isBlank()) {
-            return null;
-        }
-        if (!authHeader.regionMatches(true, 0, BEARER_PREFIX, 0, BEARER_PREFIX.length())) {
-            return null;
-        }
-        return authHeader.substring(BEARER_PREFIX.length()).trim();
-    }
-
-    private UsernamePasswordAuthenticationToken buildAuthentication(String token) {
-        Claims claims = jwtService.validate(token);
-        return new UsernamePasswordAuthenticationToken(
-                claims.getSubject(),
-                null,
-                List.of(new SimpleGrantedAuthority("ROLE_USER"))
-        );
-    }
-
-    private String unauthorizedBody(String message) {
-        return """
-                {"error":"Unauthorized","message":"%s"}
-                """.formatted(message).trim();
-    }
-
-    private void writeUnauthorized(HttpServletResponse response, String body) throws IOException {
+    private void writeUnauthorized(HttpServletResponse response, String message) throws IOException {
         if (response.isCommitted()) {
             return;
         }
@@ -97,7 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.resetBuffer();
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write(body);
+        response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"" + message + "\"}");
         response.flushBuffer();
     }
 }

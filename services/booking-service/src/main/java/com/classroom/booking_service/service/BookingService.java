@@ -1,5 +1,6 @@
 package com.classroom.booking_service.service;
 
+import com.classroom.booking_service.client.RoomServiceClient;
 import com.classroom.booking_service.dto.*;
 import com.classroom.booking_service.entity.*;
 import com.classroom.booking_service.exception.*;
@@ -11,12 +12,7 @@ import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -29,15 +25,14 @@ public class BookingService {
 
     private static final Logger log = LoggerFactory.getLogger(BookingService.class);
     private static final String BOOKING_NOT_FOUND = "Booking not found";
-    private static final String ROOM_SERVICE_BASE_URL = "http://ROOM-SERVICE";
 
     private final BookingRepository bookingRepository;
-    private final RestTemplate restTemplate;
+    private final RoomServiceClient roomServiceClient;
 
     public BookingService(BookingRepository bookingRepository,
-                          RestTemplate restTemplate) {
+                          RoomServiceClient roomServiceClient) {
         this.bookingRepository = bookingRepository;
-        this.restTemplate = restTemplate;
+        this.roomServiceClient = roomServiceClient;
     }
 
     public List<Booking> getAllBookings() {
@@ -104,8 +99,8 @@ public class BookingService {
     public boolean isRoomAvailable(Long roomId, String range) {
 
         try {
-            fetchRoomInternal(roomId);
-        } catch (ResourceNotFoundException ex) {
+            roomServiceClient.getRoomById(roomId, null);
+        } catch (Exception ex) {
             throw new IllegalArgumentException("Room does not exist");
         }
 
@@ -140,9 +135,9 @@ public class BookingService {
     public CompletableFuture<String> getRoomDetails(Long roomId, String token) {
 
         return CompletableFuture.supplyAsync(() -> {
-            log.info("Calling room-service via RestTemplate for roomId={}", roomId);
+            log.info("Calling room-service via Feign for roomId={}", roomId);
 
-            RoomResponse room = fetchRoom(roomId, token);
+            RoomResponse room = roomServiceClient.getRoomById(roomId, token);
 
             return room.toString();
         });
@@ -183,42 +178,13 @@ public class BookingService {
         return a.start().isBefore(b.end()) && b.start().isBefore(a.end());
     }
 
-    private RoomResponse fetchRoomInternal(Long roomId) {
-        try {
-            return restTemplate.getForObject(
-                    ROOM_SERVICE_BASE_URL + "/rooms/internal/{id}",
-                    RoomResponse.class,
-                    roomId
-            );
-        } catch (HttpClientErrorException.NotFound ex) {
-            throw new ResourceNotFoundException("Room not found");
-        }
-    }
-
-    private RoomResponse fetchRoom(Long roomId, String token) {
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.set(HttpHeaders.AUTHORIZATION, token);
-
-            return restTemplate.exchange(
-                    ROOM_SERVICE_BASE_URL + "/rooms/{id}",
-                    HttpMethod.GET,
-                    new HttpEntity<Void>(headers),
-                    RoomResponse.class,
-                    roomId
-            ).getBody();
-        } catch (HttpClientErrorException.NotFound ex) {
-            throw new ResourceNotFoundException("Room not found");
-        }
-    }
-
     
     public BookingWithRoomResponse getBookingWithRoom(Long id, String token) {
 
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("BOOKING_NOT_FOUND"));
 
-        RoomResponse room = fetchRoom(booking.getRoomId(), token);
+        RoomResponse room = roomServiceClient.getRoomById(booking.getRoomId(), token);
 
         BookingWithRoomResponse response = new BookingWithRoomResponse();
 
