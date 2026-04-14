@@ -75,7 +75,14 @@ pipeline {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                         sh '''
                             export SONAR_SCANNER_JAVA_OPTS="-Xmx512m"
-                            mvn -e -N -f pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
+                            echo "Java runtime:"
+                            java -version
+                            echo "Maven runtime:"
+                            mvn -version
+                            echo "Sonar host: $SONAR_HOST_URL"
+                            curl -sS -I "$SONAR_HOST_URL/api/system/status" || true
+
+                            mvn -X -e -N -f pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
                             -Dsonar.host.url=$SONAR_HOST_URL \
                             -Dsonar.token=$SONAR_TOKEN \
                             -Dsonar.projectKey=classroom-booking \
