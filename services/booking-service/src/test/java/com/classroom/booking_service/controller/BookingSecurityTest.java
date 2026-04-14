@@ -16,10 +16,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -81,5 +84,20 @@ class BookingSecurityTest {
         mockMvc.perform(get("/bookings/rooms/26/status").header("Authorization", "Bearer valid-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bookingStatus").value("BOOKED"));
+    }
+
+    @Test
+    void shouldAllowAsyncRoomDetailsEndpointWithValidToken() throws Exception {
+        when(jwtService.validate("valid-token")).thenReturn(new DefaultClaims());
+        when(bookingService.getRoomDetails(2L, "Bearer valid-token"))
+                .thenReturn(CompletableFuture.completedFuture("room data"));
+
+        MvcResult result = mockMvc.perform(get("/bookings/room-details/2")
+                        .header("Authorization", "Bearer valid-token"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(result))
+                .andExpect(status().isOk());
     }
 }
