@@ -27,6 +27,7 @@ public class RoomServiceImpl implements RoomService{
     private static final String ROOM_NOT_FOUND_MESSAGE = "Room not found";
     private static final String ROOM_DETAILS_FALLBACK =
             "Booking service unavailable";
+    private static final String DEFAULT_BOOKING_SERVICE_BASE_URL = "http://BOOKING-SERVICE";
     private static final Logger log = LoggerFactory.getLogger(RoomServiceImpl.class);
 
     private final RoomRepository roomRepository;
@@ -37,7 +38,7 @@ public class RoomServiceImpl implements RoomService{
     public RoomServiceImpl(RoomRepository roomRepository,
                            RestTemplate restTemplate,
                            @Value("${custom.delay-ms:0}") long delayMs,
-                           @Value("${booking-service.base-url}") String bookingServiceBaseUrl) {
+                           @Value("${booking-service.base-url:" + DEFAULT_BOOKING_SERVICE_BASE_URL + "}") String bookingServiceBaseUrl) {
         this.roomRepository = roomRepository;
         this.restTemplate = restTemplate;
         this.delayMs = delayMs;
