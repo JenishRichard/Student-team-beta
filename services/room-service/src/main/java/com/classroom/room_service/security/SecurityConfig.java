@@ -17,7 +17,11 @@ import java.util.List;
 public class SecurityConfig {
 
     private static final List<String> ROOM_API_PATTERNS = List.of("/rooms/**");
-    private static final List<String> PUBLIC_ENDPOINTS = List.of("/actuator/health", "/actuator/info");
+    private static final List<String> PUBLIC_ENDPOINTS = List.of(
+            "/actuator/health",
+            "/actuator/info",
+            "/rooms/internal/**"
+    );
     private static final List<String> ALLOWED_ORIGINS =
             List.of("http://localhost:5173", "http://127.0.0.1:5173");
     private static final List<String> ALLOWED_METHODS =

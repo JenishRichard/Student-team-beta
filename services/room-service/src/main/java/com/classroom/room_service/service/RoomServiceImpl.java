@@ -27,21 +27,19 @@ public class RoomServiceImpl implements RoomService{
     private static final String ROOM_NOT_FOUND_MESSAGE = "Room not found";
     private static final String ROOM_DETAILS_FALLBACK =
             "Booking service unavailable";
+    private static final String BOOKING_SERVICE_BASE_URL = "http://BOOKING-SERVICE";
     private static final Logger log = LoggerFactory.getLogger(RoomServiceImpl.class);
 
     private final RoomRepository roomRepository;
     private final RestTemplate restTemplate;
     private final long delayMs;
-    private final String bookingServiceBaseUrl;
 
     public RoomServiceImpl(RoomRepository roomRepository,
                            RestTemplate restTemplate,
-                           @Value("${custom.delay-ms:0}") long delayMs,
-                           @Value("${booking-service.base-url}") String bookingServiceBaseUrl) {
+                           @Value("${custom.delay-ms:0}") long delayMs) {
         this.roomRepository = roomRepository;
         this.restTemplate = restTemplate;
         this.delayMs = delayMs;
-        this.bookingServiceBaseUrl = bookingServiceBaseUrl;
     }
 
     @Override
@@ -137,7 +135,7 @@ public class RoomServiceImpl implements RoomService{
         headers.set(HttpHeaders.AUTHORIZATION, token);
 
         ResponseEntity<BookingStatusResponse> response = restTemplate.exchange(
-                bookingServiceBaseUrl + "/bookings/rooms/" + roomId + "/status",
+                BOOKING_SERVICE_BASE_URL + "/bookings/rooms/" + roomId + "/status",
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
                 BookingStatusResponse.class

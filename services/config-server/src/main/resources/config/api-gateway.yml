@@ -13,17 +13,17 @@ spring:
         webmvc:
           routes:
             - id: room-service
-              uri: http://localhost:8081
+              uri: lb://room-service
               predicates:
                 - Path=/rooms, /rooms/**
 
             - id: booking-service
-              uri: http://localhost:8083
+              uri: lb://booking-service
               predicates:
                 - Path=/bookings, /bookings/**
 
             - id: auth-service
-              uri: http://localhost:8084
+              uri: lb://auth-service
               predicates:
                 - Path=/auth, /auth/**
 

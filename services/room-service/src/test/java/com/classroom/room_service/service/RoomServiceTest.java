@@ -37,7 +37,7 @@ class RoomServiceTest {
 
     @org.junit.jupiter.api.BeforeEach
     void setUp() {
-        roomService = new RoomServiceImpl(roomRepository, restTemplate, 0, "http://localhost:8083");
+        roomService = new RoomServiceImpl(roomRepository, restTemplate, 0);
     }
 
     private Room createRoom() {

@@ -30,13 +30,13 @@ Scenario: Get booking with room details
     Then status 200
     And match response.id == bookingId
     And match response.bookedBy == bookedBy
-    And match response.roomId == 3
+    And match response.roomId == roomId
     And match response.bookedByIdentity == 'TEACHER'
     And match response.bookingDate == '2026-04-10'
     And match response.bookingTime == '14:00-15:00'
     And match response.status == 'CONFIRMED'
     And match response.room != null
-    And match response.room.id == 3
+    And match response.room.id == roomId
 
 Scenario: Cancel booking
     Given url bookingServiceUrl + '/bookings/' + bookingId + '/cancel'
