@@ -4,7 +4,7 @@ pipeline {
     environment {
         GITHUB_TOKEN = credentials('github-token')
 
-        EMAIL_RECIPIENTS = 'sanket.shetty9423@gmail.com'
+        EMAIL_RECIPIENTS = 'sanket.shetty9423@gmail.com,shivendrasurve01@gmail.com'
 
         DB_USER = credentials('rds-db-user')
         DB_PASSWORD = credentials('rds-db-password')
@@ -157,39 +157,41 @@ pipeline {
 
     post {
         always {
-            sh '''
-            echo "Stopping services..."
-            pkill -f 'room-service-0.0.1-SNAPSHOT.jar' || true
-            pkill -f 'booking-service-0.0.1-SNAPSHOT.jar' || true
-            '''
-            junit testResults: 'services/**/target/surefire-reports/*.xml, services/karate-tests/target/surefire-reports/*.xml', allowEmptyResults: true
-            archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, services/karate-tests/target/karate-reports/**, services/karate-tests/target/surefire-reports/*.xml, *.log', fingerprint: true
+            node {
+                sh '''
+                echo "Stopping services..."
+                pkill -f 'room-service-0.0.1-SNAPSHOT.jar' || true
+                pkill -f 'booking-service-0.0.1-SNAPSHOT.jar' || true
+                '''
+                junit testResults: 'services/**/target/surefire-reports/*.xml, services/karate-tests/target/surefire-reports/*.xml', allowEmptyResults: true
+                archiveArtifacts artifacts: 'services/**/target/*.jar, services/**/target/surefire-reports/*.xml, services/**/target/site/jacoco/**, services/karate-tests/target/karate-reports/**, services/karate-tests/target/surefire-reports/*.xml, *.log', fingerprint: true
 
-            publishHTML(target: [
-                reportDir: 'services/room-service/target/site/jacoco',
-                reportFiles: 'index.html',
-                reportName: 'JaCoCo - room-service',
-                allowMissing: true,
-                keepAll: true,
-                alwaysLinkToLastBuild: true
-            ])
+                publishHTML(target: [
+                    reportDir: 'services/room-service/target/site/jacoco',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo - room-service',
+                    allowMissing: true,
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true
+                ])
 
-            publishHTML(target: [
-                reportDir: 'services/booking-service/target/site/jacoco',
-                reportFiles: 'index.html',
-                reportName: 'JaCoCo - booking-service',
-                allowMissing: true,
-                keepAll: true,
-                alwaysLinkToLastBuild: true
-            ])
+                publishHTML(target: [
+                    reportDir: 'services/booking-service/target/site/jacoco',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo - booking-service',
+                    allowMissing: true,
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true
+                ])
 
-            publishHTML(target: [
-                reportDir: 'services/karate-tests/target/karate-reports',
-                reportFiles: 'karate-summary.html',
-                reportName: 'Karate API Test Report',
-                keepAll: true,
-                alwaysLinkToLastBuild: true
-            ])
+                publishHTML(target: [
+                    reportDir: 'services/karate-tests/target/karate-reports',
+                    reportFiles: 'karate-summary.html',
+                    reportName: 'Karate API Test Report',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true
+                ])
+            }
         }
 
         success {
