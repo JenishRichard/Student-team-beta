@@ -152,12 +152,6 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
-
-        <dependency>
-        	<groupId>com.classroom</groupId>
-        	<artifactId>api-gateway</artifactId>
-        	<version>0.0.1-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -218,6 +212,10 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <argLine>@{argLine} -XX:+EnableDynamicAgentLoading</argLine>
+                    <!-- Prevent tests from trying to import an external config server -->
+                    <systemPropertyVariables>
+                        <spring.config.import></spring.config.import>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
 

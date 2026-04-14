@@ -4,18 +4,16 @@ import com.classroom.booking_service.client.RoomServiceClient;
 import com.classroom.booking_service.entity.Booking;
 import com.classroom.booking_service.security.JwtAuthenticationFilter;
 import com.classroom.booking_service.security.JwtService;
-import com.classroom.booking_service.security.SecurityConfig;
 import com.classroom.booking_service.service.BookingService;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.impl.DefaultClaims;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 
@@ -24,26 +22,35 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ActiveProfiles("test")
-@WebMvcTest(controllers = BookingController.class)
-
-@Import(SecurityConfig.class)
+@ExtendWith(MockitoExtension.class)
 class BookingSecurityTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private BookingService bookingService;
 
-    @MockBean
+    @Mock
     private JwtService jwtService;
 
-    @MockBean
+    @Mock
     private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
 
-    @MockBean
+    @Mock
     private RoomServiceClient roomServiceClient;
+
+    @BeforeEach
+    void setUp() {
+        // Build controller with mocked service
+        BookingController controller = new BookingController(bookingService);
+
+        // Instantiate filter with mocked jwtService
+        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtService);
+
+        this.mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .addFilters(jwtFilter)
+                .build();
+    }
 
     @Test
     void shouldReturn401WhenBookingsEndpointHasNoToken() throws Exception {

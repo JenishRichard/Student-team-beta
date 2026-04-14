@@ -3,6 +3,8 @@ package com.classroom.booking_service.exception;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import feign.FeignException;
+import static org.mockito.Mockito.mock;
 
 class GlobalExceptionHandlerTest {
 
@@ -39,5 +41,29 @@ class GlobalExceptionHandlerTest {
         String response = handler.handleIllegalArgument(ex);
 
         assertEquals("Invalid input provided", response);
+    }
+
+    @Test
+    void testHandleResourceNotFound() {
+        GlobalExceptionHandler handler = new GlobalExceptionHandler();
+        ResourceNotFoundException ex = new ResourceNotFoundException("Not here");
+        String response = handler.handleResourceNotFound(ex);
+        assertEquals("Not here", response);
+    }
+
+    @Test
+    void testHandleFeignNotFound() {
+        GlobalExceptionHandler handler = new GlobalExceptionHandler();
+        FeignException.NotFound feign = mock(FeignException.NotFound.class);
+        String response = handler.handleFeignNotFound(feign);
+        assertEquals("Room not found", response);
+    }
+
+    @Test
+    void testHandleGenericException() {
+        GlobalExceptionHandler handler = new GlobalExceptionHandler();
+        Exception ex = new Exception("oops");
+        String response = handler.handleGenericException(ex);
+        assertEquals("Internal server error", response);
     }
 }

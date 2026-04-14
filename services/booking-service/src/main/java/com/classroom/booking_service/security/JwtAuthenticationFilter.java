@@ -42,7 +42,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
+            // Missing or malformed Authorization header -> respond with JSON 401
+            writeUnauthorized(response, "Missing Bearer token");
             return;
         }
 
